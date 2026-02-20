@@ -151,9 +151,14 @@ describe('focus', () => {
       expect(terminals).toContain('Ghostty');
     });
 
-    it('should return exactly 3 terminals', () => {
+    it('should include VSCode in supported terminals', () => {
       const terminals = getSupportedTerminals();
-      expect(terminals).toHaveLength(3);
+      expect(terminals).toContain('VSCode');
+    });
+
+    it('should return exactly 4 terminals', () => {
+      const terminals = getSupportedTerminals();
+      expect(terminals).toHaveLength(4);
     });
   });
 

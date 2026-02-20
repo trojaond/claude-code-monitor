@@ -1,6 +1,7 @@
 import { accessSync, constants, writeFileSync } from 'node:fs';
 import { executeAppleScript } from './applescript.js';
 import { executeWithTerminalFallback } from './terminal-strategy.js';
+import { findVSCodeSockets, sendFocusRequest } from './vscode-ipc.js';
 
 /**
  * Sanitize a string for safe use in AppleScript.
@@ -193,6 +194,15 @@ function focusGhostty(tty: string): boolean {
   return executeAppleScript(buildGhosttyScript());
 }
 
+function focusVSCode(tty: string): boolean {
+  const sockets = findVSCodeSockets();
+  for (const socketPath of sockets) {
+    const response = sendFocusRequest(socketPath, tty);
+    if (response?.success) return true;
+  }
+  return false;
+}
+
 export function isMacOS(): boolean {
   return process.platform === 'darwin';
 }
@@ -205,9 +215,10 @@ export function focusSession(tty: string): boolean {
     iTerm2: () => focusITerm2(tty),
     terminalApp: () => focusTerminalApp(tty),
     ghostty: () => focusGhostty(tty),
+    vscode: () => focusVSCode(tty),
   });
 }
 
 export function getSupportedTerminals(): string[] {
-  return ['iTerm2', 'Terminal.app', 'Ghostty'];
+  return ['iTerm2', 'Terminal.app', 'Ghostty', 'VSCode'];
 }
