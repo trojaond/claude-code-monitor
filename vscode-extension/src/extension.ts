@@ -1,5 +1,6 @@
-import * as vscode from 'vscode';
+import { unlinkSync } from 'node:fs';
 import type * as net from 'node:net';
+import type * as vscode from 'vscode';
 import { createSocketServer, registerTerminalCloseHandler } from './socket-server';
 
 let server: net.Server | undefined;
@@ -21,7 +22,7 @@ export function deactivate() {
   }
   if (socketPath) {
     try {
-      require('node:fs').unlinkSync(socketPath);
+      unlinkSync(socketPath);
     } catch {
       // Already cleaned up
     }

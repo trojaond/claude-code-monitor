@@ -1,5 +1,5 @@
-import * as net from 'node:net';
 import * as fs from 'node:fs';
+import * as net from 'node:net';
 import * as vscode from 'vscode';
 import { evictPid, findTerminalByTty } from './tty-resolver';
 
@@ -12,6 +12,8 @@ interface FocusResponse {
   success: boolean;
   error?: string;
 }
+
+const MAX_REQUEST_SIZE = 4096;
 
 function getSocketPath(): string {
   return `/tmp/ccm-vscode-${process.pid}.sock`;
@@ -45,6 +47,12 @@ export function createSocketServer(): { server: net.Server; socketPath: string }
     connection.on('data', (chunk) => {
       data += chunk.toString();
 
+      if (data.length > MAX_REQUEST_SIZE) {
+        respond(connection, { success: false, error: 'Request too large' });
+        connection.destroy();
+        return;
+      }
+
       // Look for newline delimiter
       const newlineIndex = data.indexOf('\n');
       if (newlineIndex === -1) return;
@@ -63,13 +71,9 @@ export function createSocketServer(): { server: net.Server; socketPath: string }
     });
   });
 
+  const oldUmask = process.umask(0o177); // Creates socket as 0o600
   server.listen(socketPath, () => {
-    // Set permissions: owner read/write only
-    try {
-      fs.chmodSync(socketPath, 0o600);
-    } catch {
-      // Non-critical
-    }
+    process.umask(oldUmask);
   });
 
   server.on('error', (err) => {
@@ -101,7 +105,7 @@ async function handleRequest(jsonStr: string, connection: net.Socket): Promise<v
   try {
     const terminal = await findTerminalByTty(request.tty);
     if (terminal) {
-      terminal.show(false); // false = don't take focus from editor, just reveal terminal
+      terminal.show(true);
       respond(connection, { success: true });
     } else {
       respond(connection, {

@@ -18,7 +18,7 @@ const TEST_SOCKET = '/tmp/ccm-vscode-99999.sock';
 function startMockServer(
   socketPath: string,
   responsePayload: Record<string, unknown>,
-  opts?: { validateRequest?: boolean },
+  opts?: { validateRequest?: boolean }
 ): Promise<{ child: ReturnType<typeof fork>; ready: Promise<void> }> {
   const scriptPath = '/tmp/ccm-ipc-test-server.cjs';
   const script = `
@@ -90,7 +90,7 @@ describe('vscode-ipc integration', () => {
     const { child, ready } = await startMockServer(
       TEST_SOCKET,
       { success: true },
-      { validateRequest: true },
+      { validateRequest: true }
     );
     serverChild = child;
     await ready;

@@ -23,7 +23,7 @@ export function resolvePidToTty(pid: number): string | undefined {
 
     // lsof -Fn output format: lines starting with 'n' contain the file name
     for (const line of output.split('\n')) {
-      if (line.startsWith('n/dev/ttys')) {
+      if (line.startsWith('n/dev/tty') || line.startsWith('n/dev/pts/')) {
         const tty = line.slice(1); // Remove 'n' prefix
         pidToTtyCache.set(pid, tty);
         return tty;
@@ -39,9 +39,7 @@ export function resolvePidToTty(pid: number): string | undefined {
 /**
  * Find the VSCode terminal whose shell process owns the given TTY.
  */
-export async function findTerminalByTty(
-  tty: string
-): Promise<vscode.Terminal | undefined> {
+export async function findTerminalByTty(tty: string): Promise<vscode.Terminal | undefined> {
   const terminals = vscode.window.terminals;
 
   for (const terminal of terminals) {
