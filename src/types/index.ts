@@ -36,6 +36,16 @@ export interface Session {
   costUSD?: number; // e.g., 0.42
 }
 
+// Task status (from TodoWrite / TaskCreate / TaskUpdate)
+export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+
+export interface Task {
+  id: string;
+  subject: string;
+  description?: string;
+  status: TaskStatus;
+}
+
 // File store data structure
 export interface StoreData {
   sessions: Record<string, Session>;

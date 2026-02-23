@@ -1,12 +1,18 @@
 import { Box, Text, useApp, useInput, useStdout } from 'ink';
 import type React from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MIN_TERMINAL_HEIGHT_FOR_QR } from '../constants.js';
 import { useServer } from '../hooks/useServer.js';
 import { useSessions } from '../hooks/useSessions.js';
 import { clearSessions, readSettings, writeSettings } from '../store/file-store.js';
+import type { Task } from '../types/index.js';
 import { focusSession } from '../utils/focus.js';
+import { getTasksFromTranscript } from '../utils/tasks.js';
+import { buildTranscriptPath } from '../utils/transcript.js';
 import { SessionCard } from './SessionCard.js';
+import { TaskDetailView } from './TaskDetailView.js';
+
+type ViewMode = 'list' | 'tasks';
 
 const QUICK_SELECT_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -21,6 +27,9 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   const { sessions, loading, error } = useSessions();
   const { url, qrCode, tailscaleIP, loading: serverLoading } = useServer({ preferTailscale });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [taskData, setTaskData] = useState<Task[] | undefined>();
+  const [taskLoading, setTaskLoading] = useState(false);
   const { exit } = useApp();
   const { stdout } = useStdout();
 
@@ -59,6 +68,46 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
     }
   };
 
+  // Auto-return to list view if selected session disappears
+  useEffect(() => {
+    if (viewMode === 'tasks' && selectedIndex >= sessions.length) {
+      setViewMode('list');
+    }
+  }, [viewMode, selectedIndex, sessions.length]);
+
+  const openTaskView = () => {
+    const session = sessions[selectedIndex];
+    if (!session) return;
+    setTaskLoading(true);
+    setViewMode('tasks');
+    try {
+      const transcriptPath = buildTranscriptPath(session.cwd, session.session_id);
+      setTaskData(getTasksFromTranscript(transcriptPath));
+    } catch {
+      setTaskData(undefined);
+    } finally {
+      setTaskLoading(false);
+    }
+  };
+
+  // Compute task summaries for all sessions (e.g. "2/5")
+  const taskSummaries = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const session of sessions) {
+      try {
+        const path = buildTranscriptPath(session.cwd, session.session_id);
+        const tasks = getTasksFromTranscript(path);
+        if (tasks && tasks.length > 0) {
+          const done = tasks.filter((t) => t.status === 'completed').length;
+          map.set(session.session_id, `${done}/${tasks.length}`);
+        }
+      } catch {
+        // Skip failed transcript reads
+      }
+    }
+    return map;
+  }, [sessions]);
+
   const statusCounts = useMemo(
     () =>
       sessions.reduce(
@@ -72,6 +121,15 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   );
 
   useInput((input, key) => {
+    // Tasks detail view: only back navigation
+    if (viewMode === 'tasks') {
+      if (input === 's' || key.escape || input === 'q') {
+        setViewMode('list');
+      }
+      return;
+    }
+
+    // List view
     if (input === 'q' || key.escape) {
       exit();
       return;
@@ -86,6 +144,10 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
     }
     if (key.return || input === 'f') {
       focusSessionByIndex(selectedIndex);
+      return;
+    }
+    if (input === 's') {
+      openTaskView();
       return;
     }
     if (QUICK_SELECT_KEYS.includes(input)) {
@@ -112,6 +174,14 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   }
 
   const { running, waiting_input: waitingInput, stopped } = statusCounts;
+
+  if (viewMode === 'tasks') {
+    const session = sessions[selectedIndex];
+    if (session) {
+      return <TaskDetailView session={session} tasks={taskData} loading={taskLoading} />;
+    }
+    // Session gone, fall through to list
+  }
 
   return (
     <Box flexDirection="column">
@@ -143,6 +213,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
                 session={session}
                 index={index}
                 isSelected={index === selectedIndex}
+                taskSummary={taskSummaries.get(session.session_id)}
               />
             ))
           )}
@@ -153,6 +224,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       <Box marginTop={1} justifyContent="center" gap={1}>
         <Text dimColor>[↑↓]Select</Text>
         <Text dimColor>[Enter]Focus</Text>
+        <Text dimColor>[s]Tasks</Text>
         <Text dimColor>[1-9]Quick</Text>
         <Text dimColor>[c]Clear</Text>
         <Text dimColor>[h]{qrCodeUserPref ? 'Hide' : 'Show'}URL</Text>
