@@ -7,7 +7,7 @@
 **Monitor multiple Claude Code sessions in real-time from your terminal or smartphone.**
 
 ### Terminal UI
-K9s-style table view with real-time session monitoring
+Table view with real-time session monitoring with focus feature which takes you directly to the Claude session you want
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/1d8ace16-006c-4ea9-86f5-36b83e7e70fa" alt="Terminal UI" width="800">
