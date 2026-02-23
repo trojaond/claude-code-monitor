@@ -1,9 +1,9 @@
 {
-  "name": "ccm-terminal-bridge",
-  "displayName": "CCM Terminal Bridge",
-  "description": "Enables claude-code-monitor to focus VSCode terminal tabs via IPC",
+  "name": "ccn-terminal-bridge",
+  "displayName": "CCN Terminal Bridge",
+  "description": "Enables claude-code-navigator to focus VSCode terminal tabs via IPC",
   "version": "0.1.0",
-  "publisher": "ccm",
+  "publisher": "ccn",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other"],
   "activationEvents": ["*"],

@@ -12,7 +12,7 @@ import { sendFocusRequest } from '../src/utils/vscode-ipc.js';
  * the test process.
  */
 
-const TEST_SOCKET = '/tmp/ccm-vscode-99999.sock';
+const TEST_SOCKET = '/tmp/ccn-vscode-99999.sock';
 
 /** Helper: write a temporary server script and fork it. */
 function startMockServer(
@@ -20,7 +20,7 @@ function startMockServer(
   responsePayload: Record<string, unknown>,
   opts?: { validateRequest?: boolean }
 ): Promise<{ child: ReturnType<typeof fork>; ready: Promise<void> }> {
-  const scriptPath = '/tmp/ccm-ipc-test-server.cjs';
+  const scriptPath = '/tmp/ccn-ipc-test-server.cjs';
   const script = `
 const net = require('net');
 const server = net.createServer((conn) => {
@@ -100,7 +100,7 @@ describe('vscode-ipc integration', () => {
   });
 
   it('should return null when socket does not exist', () => {
-    const response = sendFocusRequest('/tmp/ccm-vscode-nonexistent.sock', '/dev/ttys003');
+    const response = sendFocusRequest('/tmp/ccn-vscode-nonexistent.sock', '/dev/ttys003');
     expect(response).toBeNull();
   });
 

@@ -35,7 +35,7 @@ async function captureRegion(bounds: WindowBounds): Promise<string | null> {
     return null;
   }
 
-  const tempPath = `/tmp/ccm-capture-${randomUUID()}.png`;
+  const tempPath = `/tmp/ccn-capture-${randomUUID()}.png`;
   const region = `${bounds.x},${bounds.y},${bounds.width},${bounds.height}`;
 
   try {

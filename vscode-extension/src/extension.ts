@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   registerTerminalCloseHandler(context);
 
-  console.log(`ccm-terminal-bridge: listening on ${socketPath}`);
+  console.log(`ccn-terminal-bridge: listening on ${socketPath}`);
 }
 
 export function deactivate() {

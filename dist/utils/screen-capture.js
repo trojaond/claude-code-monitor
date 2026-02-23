@@ -21,7 +21,7 @@ async function captureRegion(bounds) {
     if (!isMacOS()) {
         return null;
     }
-    const tempPath = `/tmp/ccm-capture-${randomUUID()}.png`;
+    const tempPath = `/tmp/ccn-capture-${randomUUID()}.png`;
     const region = `${bounds.x},${bounds.y},${bounds.width},${bounds.height}`;
     try {
         // screencapture -R x,y,width,height -x <path>

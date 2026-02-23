@@ -1,5 +1,5 @@
 {
-  "name": "claude-code-monitor",
+  "name": "claude-code-navigator",
   "version": "1.3.1",
   "description": "CLI for monitoring multiple Claude Code sessions in real-time",
   "type": "module",
@@ -12,7 +12,7 @@
     }
   },
   "bin": {
-    "ccm": "dist/bin/ccm.js"
+    "ccn": "dist/bin/ccn.js"
   },
   "files": [
     "dist",
@@ -22,9 +22,9 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "dev": "tsx watch src/bin/ccm.tsx",
+    "dev": "tsx watch src/bin/ccn.tsx",
     "build": "tsc",
-    "start": "node dist/bin/ccm.js",
+    "start": "node dist/bin/ccn.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -39,7 +39,7 @@
     "claude",
     "claude-code",
     "anthropic",
-    "monitor",
+    "navigator",
     "cli",
     "tui",
     "terminal",
@@ -49,12 +49,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onikan27/claude-code-monitor.git"
+    "url": "git+https://github.com/onikan27/claude-code-navigator.git"
   },
   "bugs": {
-    "url": "https://github.com/onikan27/claude-code-monitor/issues"
+    "url": "https://github.com/onikan27/claude-code-navigator/issues"
   },
-  "homepage": "https://github.com/onikan27/claude-code-monitor#readme",
+  "homepage": "https://github.com/onikan27/claude-code-navigator#readme",
   "engines": {
     "node": ">=18.0.0"
   },

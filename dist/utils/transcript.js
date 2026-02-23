@@ -141,3 +141,38 @@ export function getCostFromTranscript(transcriptPath) {
     }
     return undefined;
 }
+const CONTEXT_WINDOW_TOKENS = 200_000;
+/**
+ * Get context window usage percentage from the last assistant message.
+ * Returns 0-100 representing how full the context window is.
+ */
+export function getContextUsageFromTranscript(transcriptPath) {
+    if (!transcriptPath || !existsSync(transcriptPath)) {
+        return undefined;
+    }
+    try {
+        const content = readFileSync(transcriptPath, 'utf-8');
+        const lines = content.trim().split('\n').filter(Boolean);
+        // Read from end to find last assistant message with usage
+        for (let i = lines.length - 1; i >= 0; i--) {
+            try {
+                const entry = JSON.parse(lines[i]);
+                if (entry.type === 'assistant' && entry.message?.usage) {
+                    const usage = entry.message.usage;
+                    const totalInput = (usage.input_tokens ?? 0) +
+                        (usage.cache_read_input_tokens ?? 0) +
+                        (usage.cache_creation_input_tokens ?? 0);
+                    const percent = Math.round((totalInput / CONTEXT_WINDOW_TOKENS) * 100);
+                    return Math.min(percent, 100);
+                }
+            }
+            catch {
+                // Skip invalid JSON lines
+            }
+        }
+    }
+    catch {
+        // Ignore file read errors
+    }
+    return undefined;
+}

@@ -13,8 +13,8 @@ export declare function isValidTtyPath(tty: string): boolean;
 /**
  * Generate a title tag for a TTY path.
  * Used to identify terminal windows/tabs by their title.
- * @example generateTitleTag('/dev/ttys001') => 'ccm:ttys001'
- * @example generateTitleTag('/dev/pts/0') => 'ccm:pts-0'
+ * @example generateTitleTag('/dev/ttys001') => 'ccn:ttys001'
+ * @example generateTitleTag('/dev/pts/0') => 'ccn:pts-0'
  * @internal
  */
 export declare function generateTitleTag(tty: string): string;

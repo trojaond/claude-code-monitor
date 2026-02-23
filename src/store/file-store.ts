@@ -18,7 +18,7 @@ import { isTtyAlive } from '../utils/tty-cache.js';
 // Re-export for backward compatibility
 export { isTtyAlive } from '../utils/tty-cache.js';
 
-const STORE_DIR = join(homedir(), '.claude-monitor');
+const STORE_DIR = join(homedir(), '.claude-navigator');
 const STORE_FILE = join(STORE_DIR, 'sessions.json');
 const STORE_LOCK_FILE = join(STORE_DIR, 'sessions.json.lock');
 const SETTINGS_FILE = join(STORE_DIR, 'settings.json');
@@ -262,6 +262,7 @@ export function updateSession(event: HookEvent): Session {
     model: event.model ?? existing?.model,
     costUSD: event.costUSD ?? existing?.costUSD,
     contextPercent: event.contextPercent ?? existing?.contextPercent,
+    lastPrompt: event.lastPrompt ?? existing?.lastPrompt,
   };
 
   store.sessions[key] = session;

@@ -27,7 +27,7 @@ npm run typecheck     # 型チェックのみ
 
 ```bash
 # stdinからJSONを渡してフック処理をテスト
-echo '{"session_id":"test-123","cwd":"/tmp"}' | npx tsx src/bin/ccm.tsx hook PreToolUse
+echo '{"session_id":"test-123","cwd":"/tmp"}' | npx tsx src/bin/ccn.tsx hook PreToolUse
 ```
 
 ## Architecture
@@ -36,20 +36,20 @@ Claude Codeの複数セッションをリアルタイム監視するmacOS専用C
 
 ### 重要なファイルパス
 
-- `~/.claude-monitor/sessions.json` - セッション状態の永続化ファイル
-- `~/.claude/settings.json` - Claude Codeのフック設定（`ccm setup`で自動設定）
+- `~/.claude-navigator/sessions.json` - セッション状態の永続化ファイル
+- `~/.claude/settings.json` - Claude Codeのフック設定（`ccn setup`で自動設定）
 - `~/.claude/projects/*/TRANSCRIPT.md` - 各セッションの会話履歴
 
 ### データフロー
 
 1. **Hook受信**: Claude Codeがフックイベント（PreToolUse, PostToolUse, Notification, Stop, UserPromptSubmit）を発火
-2. **状態更新**: `ccm hook <event>` コマンドがstdinからJSONを受け取り、`~/.claude-monitor/sessions.json` を更新
+2. **状態更新**: `ccn hook <event>` コマンドがstdinからJSONを受け取り、`~/.claude-navigator/sessions.json` を更新
 3. **UI更新**: chokidarでファイル変更を検知し、Dashboardコンポーネントが再描画
 4. **モバイルWeb同期**: WebSocketで接続中のクライアントにセッション更新をブロードキャスト
 
 ### ディレクトリ構成
 
-- `src/bin/ccm.tsx` - CLIエントリーポイント（Commanderでコマンド定義）
+- `src/bin/ccn.tsx` - CLIエントリーポイント（Commanderでコマンド定義）
 - `src/hook/handler.ts` - フックイベント処理（stdin読み取り→状態更新）
 - `src/store/file-store.ts` - セッション状態の永続化（JSON読み書き、TTY生存確認）
 - `src/setup/index.ts` - `~/.claude/settings.json` へのフック自動設定
@@ -86,16 +86,16 @@ Claude Codeの複数セッションをリアルタイム監視するmacOS専用C
 
 ### モバイルWebインターフェース
 
-`ccm`または`ccm watch`実行時にWebサーバーが自動起動し、Dashboard UIにQRコードが表示される。スマートフォンからセッション監視とフォーカス操作が可能。
+`ccn`または`ccn watch`実行時にWebサーバーが自動起動し、Dashboard UIにQRコードが表示される。スマートフォンからセッション監視とフォーカス操作が可能。
 
 - HTTPサーバー: `public/index.html`を配信（デフォルトポート3456）
 - WebSocket: セッション更新のリアルタイム同期、フォーカスコマンドの受信
-- `ccm serve`で単独のWebサーバーモードとしても起動可能
+- `ccn serve`で単独のWebサーバーモードとしても起動可能
 
 ### ライブラリとしての使用
 
 ```typescript
-import { getSessions, getStatusDisplay, focusSession } from 'claude-code-monitor';
+import { getSessions, getStatusDisplay, focusSession } from 'claude-code-navigator';
 ```
 
 `src/index.ts`で公開APIをエクスポートしている。

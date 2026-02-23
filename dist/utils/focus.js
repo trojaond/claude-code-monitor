@@ -47,8 +47,8 @@ export function isValidTtyPath(tty) {
 /**
  * Generate a title tag for a TTY path.
  * Used to identify terminal windows/tabs by their title.
- * @example generateTitleTag('/dev/ttys001') => 'ccm:ttys001'
- * @example generateTitleTag('/dev/pts/0') => 'ccm:pts-0'
+ * @example generateTitleTag('/dev/ttys001') => 'ccn:ttys001'
+ * @example generateTitleTag('/dev/pts/0') => 'ccn:pts-0'
  * @internal
  */
 export function generateTitleTag(tty) {
@@ -56,7 +56,7 @@ export function generateTitleTag(tty) {
     if (!match)
         return '';
     const ttyId = match[1].replace('/', '-');
-    return `ccm:${ttyId}`;
+    return `ccn:${ttyId}`;
 }
 /**
  * Generate an OSC (Operating System Command) escape sequence to set terminal title.

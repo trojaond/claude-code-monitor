@@ -97,6 +97,6 @@ jobs:
 
       - name: Verify dist files
         run: |
-          test -f dist/bin/ccm.js
+          test -f dist/bin/ccn.js
           test -f dist/index.js
           test -f dist/index.d.ts

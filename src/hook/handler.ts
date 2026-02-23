@@ -74,6 +74,12 @@ export async function handleHookEvent(eventName: string, tty?: string): Promise<
   const costUSD = transcriptPath ? getCostFromTranscript(transcriptPath) : undefined;
   const contextPercent = transcriptPath ? getContextUsageFromTranscript(transcriptPath) : undefined;
 
+  // Extract user prompt from UserPromptSubmit events
+  const lastPrompt =
+    eventName === 'UserPromptSubmit' && typeof rawInput.prompt === 'string'
+      ? rawInput.prompt
+      : undefined;
+
   const event: HookEvent = {
     session_id: rawInput.session_id,
     cwd,
@@ -85,6 +91,7 @@ export async function handleHookEvent(eventName: string, tty?: string): Promise<
     model,
     costUSD,
     contextPercent,
+    lastPrompt,
   };
 
   updateSession(event);

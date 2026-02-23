@@ -20,7 +20,7 @@ export interface Settings {
 export declare function isHooksConfigured(): boolean;
 export declare function setupHooks(): Promise<void>;
 /**
- * Prompt for Ghostty setting if needed (called from ccm command when hooks are already configured)
+ * Prompt for Ghostty setting if needed (called from ccn command when hooks are already configured)
  */
 export declare function promptGhosttySettingIfNeeded(): Promise<void>;
 export {};

@@ -4,13 +4,13 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { HookEvent, Session, StoreData } from '../src/types/index.js';
 
-const TEST_STORE_DIR = join(tmpdir(), `claude-monitor-test-${process.pid}`);
+const TEST_STORE_DIR = join(tmpdir(), `claude-navigator-test-${process.pid}`);
 
 vi.mock('node:os', async (importOriginal) => {
   const original = await importOriginal<typeof import('node:os')>();
   return {
     ...original,
-    homedir: () => join(tmpdir(), `claude-monitor-test-${process.pid}`),
+    homedir: () => join(tmpdir(), `claude-navigator-test-${process.pid}`),
   };
 });
 
@@ -227,9 +227,9 @@ describe('file-store', () => {
     });
 
     it('should return empty store data when file contains invalid JSON', async () => {
-      mkdirSync(join(TEST_STORE_DIR, '.claude-monitor'), { recursive: true });
+      mkdirSync(join(TEST_STORE_DIR, '.claude-navigator'), { recursive: true });
       writeFileSync(
-        join(TEST_STORE_DIR, '.claude-monitor', 'sessions.json'),
+        join(TEST_STORE_DIR, '.claude-navigator', 'sessions.json'),
         'invalid json',
         'utf-8'
       );
@@ -404,7 +404,7 @@ describe('file-store', () => {
       const path = getStorePath();
 
       expect(path).toContain('sessions.json');
-      expect(path).toContain('.claude-monitor');
+      expect(path).toContain('.claude-navigator');
     });
   });
 });

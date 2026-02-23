@@ -1,4 +1,4 @@
-# Claude Code Monitor
+# Claude Code Navigator
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
@@ -21,7 +21,7 @@ Table view with real-time session monitoring with focus feature which takes you 
 - 🧭 **Vim-style navigation** (j/k, Enter, 1-9)
 - 📋 **Task detail view** per session
 - 🔌 **Serverless** - File-based state management, no API server required
-- ⚡ **Easy Setup** - One command `ccm` for automatic setup and launch
+- ⚡ **Easy Setup** - One command `ccn` for automatic setup and launch
 - 🔒 **Secure** - No external data transmission
 
 ---
@@ -41,15 +41,15 @@ Table view with real-time session monitoring with focus feature which takes you 
 ### Install from GitHub
 
 ```bash
-git clone https://github.com/trojaond/claude-code-monitor.git
-cd claude-code-monitor
+git clone https://github.com/trojaond/claude-code-navigator.git
+cd claude-code-navigator
 npm install -g .
 ```
 
 Then run:
 
 ```bash
-ccm
+ccn
 ```
 
 On first run, it automatically sets up hooks and launches the monitor.
@@ -59,7 +59,7 @@ On first run, it automatically sets up hooks and launches the monitor.
 The mobile web server is off by default. Enable it with `--server`:
 
 ```bash
-ccm --server
+ccn --server
 ```
 
 1. Press `h` to show QR code (default port: 3456)
@@ -78,10 +78,10 @@ Access from anywhere using [Tailscale](https://tailscale.com/) (secure VPN).
 
 ```bash
 # Start with Tailscale IP
-npx claude-code-monitor -t
+npx claude-code-navigator -t
 
 # Or if installed globally
-ccm -t
+ccn -t
 ```
 
 With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing access from any device in your Tailnet - even outside your local network.
@@ -96,11 +96,11 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 
 | Command | Alias | Description |
 |---------|-------|-------------|
-| `ccm` | - | Launch monitor (auto-setup if needed) |
-| `ccm watch` | `ccm w` | Launch monitor |
-| `ccm setup` | - | Configure Claude Code hooks |
-| `ccm list` | `ccm ls` | List sessions |
-| `ccm clear` | - | Clear all sessions |
+| `ccn` | - | Launch monitor (auto-setup if needed) |
+| `ccn watch` | `ccn w` | Launch monitor |
+| `ccn setup` | - | Configure Claude Code hooks |
+| `ccn list` | `ccn ls` | List sessions |
+| `ccn clear` | - | Clear all sessions |
 
 ### Options
 
@@ -142,7 +142,7 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | iTerm2 | ✅ Full | TTY-based window/tab targeting via AppleScript |
 | Terminal.app | ✅ Full | TTY-based window/tab targeting via AppleScript |
 | Ghostty | ✅ Full | Title-based window targeting via Window menu |
-| VSCode | ✅ Full | IPC socket via CCM Terminal Bridge extension |
+| VSCode | ✅ Full | IPC socket via CCN Terminal Bridge extension |
 
 > Other terminals can use monitoring, but focus feature is not supported.
 
@@ -152,11 +152,11 @@ The focus feature (`Enter`/`f` key or mobile tap) raises the correct terminal wi
 
 For native terminals (iTerm2, Terminal.app, Ghostty), focus uses AppleScript and requires Accessibility permission (System Preferences > Privacy & Security > Accessibility).
 
-For VSCode, focus uses a Unix socket IPC protocol via the **CCM Terminal Bridge** extension (see below).
+For VSCode, focus uses a Unix socket IPC protocol via the **CCN Terminal Bridge** extension (see below).
 
 ### Ghostty Users
 
-For reliable focus functionality with multiple tabs, `ccm` or `ccm setup` will prompt you to add the following setting:
+For reliable focus functionality with multiple tabs, `ccn` or `ccn setup` will prompt you to add the following setting:
 
 ```json
 // ~/.claude/settings.json
@@ -169,11 +169,11 @@ For reliable focus functionality with multiple tabs, `ccm` or `ccm setup` will p
 
 This prevents Claude Code from overwriting terminal titles, which is necessary for tab identification in Ghostty.
 
-If you skipped this during setup and want to enable it later, add the setting manually or delete `CLAUDE_CODE_MONITOR_GHOSTTY_ASKED` from your settings and run `ccm` again.
+If you skipped this during setup and want to enable it later, add the setting manually or delete `CLAUDE_CODE_NAVIGATOR_GHOSTTY_ASKED` from your settings and run `ccn` again.
 
-### VSCode Extension: CCM Terminal Bridge
+### VSCode Extension: CCN Terminal Bridge
 
-To enable focus support for VSCode terminals, install the **CCM Terminal Bridge** extension. It creates a local Unix socket that allows `ccm` to locate and raise the correct VSCode terminal tab.
+To enable focus support for VSCode terminals, install the **CCN Terminal Bridge** extension. It creates a local Unix socket that allows `ccn` to locate and raise the correct VSCode terminal tab.
 
 **Installation:**
 
@@ -186,10 +186,10 @@ Then in VSCode: **Extensions > ... > Install from VSIX...** and select the gener
 
 **How it works:**
 
-1. The extension activates on VSCode startup and creates a Unix socket at `/tmp/ccm-vscode-{pid}.sock`
-2. When `ccm` focuses a session running in VSCode, it discovers the socket and sends a focus request with the TTY path
+1. The extension activates on VSCode startup and creates a Unix socket at `/tmp/ccn-vscode-{pid}.sock`
+2. When `ccn` focuses a session running in VSCode, it discovers the socket and sends a focus request with the TTY path
 3. The extension resolves the TTY to the correct terminal tab using `lsof` and brings it to focus
-4. The response includes the workspace name so `ccm` can raise the correct VSCode window
+4. The response includes the workspace name so `ccn` can raise the correct VSCode window
 
 No configuration is needed — the extension works automatically once installed.
 
@@ -199,7 +199,7 @@ No configuration is needed — the extension works automatically once installed.
 
 ### Sessions not showing
 
-1. Run `ccm setup` to verify hook configuration
+1. Run `ccn setup` to verify hook configuration
 2. Check `~/.claude/settings.json` for hook settings
 3. Restart Claude Code
 
@@ -212,7 +212,7 @@ No configuration is needed — the extension works automatically once installed.
 ### Reset data
 
 ```bash
-ccm clear
+ccn clear
 ```
 
 ---
@@ -228,7 +228,7 @@ ccm clear
 ## 📦 Programmatic Usage
 
 ```typescript
-import { getSessions, focusSession } from 'claude-code-monitor';
+import { getSessions, focusSession } from 'claude-code-navigator';
 
 const sessions = getSessions();
 if (sessions[0]?.tty) {
@@ -247,7 +247,7 @@ This is an unofficial community tool and is not affiliated with Anthropic.
 
 ## 🐛 Issues
 
-Found a bug? [Open an issue](https://github.com/onikan27/claude-code-monitor/issues)
+Found a bug? [Open an issue](https://github.com/onikan27/claude-code-navigator/issues)
 
 ---
 

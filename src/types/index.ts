@@ -18,6 +18,7 @@ export interface HookEvent {
   model?: string;
   costUSD?: number;
   contextPercent?: number;
+  lastPrompt?: string; // last user prompt from UserPromptSubmit
 }
 
 // Session status
@@ -36,6 +37,7 @@ export interface Session {
   model?: string; // e.g., "claude-opus-4-6"
   costUSD?: number; // e.g., 0.42
   contextPercent?: number; // 0-100, context window usage percentage
+  lastPrompt?: string; // last user prompt text
 }
 
 // Task status (from TodoWrite / TaskCreate / TaskUpdate)

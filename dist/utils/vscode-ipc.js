@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
-const SOCKET_PATTERN = /^ccm-vscode-\d+\.sock$/;
+const SOCKET_PATTERN = /^ccn-vscode-\d+\.sock$/;
 const SOCKET_DIR = '/tmp';
 /**
- * Validate that a path matches the expected CCM VSCode socket pattern.
+ * Validate that a path matches the expected CCN VSCode socket pattern.
  * @internal
  */
 export function isValidSocketPath(path) {
@@ -13,8 +13,8 @@ export function isValidSocketPath(path) {
     return SOCKET_PATTERN.test(filename);
 }
 /**
- * Scan /tmp for active CCM VSCode extension sockets.
- * Returns paths matching /tmp/ccm-vscode-{pid}.sock.
+ * Scan /tmp for active CCN VSCode extension sockets.
+ * Returns paths matching /tmp/ccn-vscode-{pid}.sock.
  */
 export function findVSCodeSockets() {
     try {
@@ -28,7 +28,7 @@ export function findVSCodeSockets() {
 /**
  * Send a focus request to a VSCode extension socket.
  * Uses a Node.js one-liner via execFileSync to keep the call synchronous,
- * matching CCM's existing sync focus architecture (executeAppleScript pattern).
+ * matching CCN's existing sync focus architecture (executeAppleScript pattern).
  */
 export function sendFocusRequest(socketPath, tty) {
     const request = JSON.stringify({ action: 'focus', tty });

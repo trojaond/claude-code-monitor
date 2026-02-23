@@ -74,6 +74,7 @@ const COL_TERMINAL = 13;
 const COL_MODEL = 12;
 const COL_COST = 7;
 const COL_CTX = 16;
+const COL_PROMPT_MIN = 20;
 const COL_TASKS = 6;
 const COL_LAST = 6;
 const COL_AGE = 6;
@@ -99,9 +100,14 @@ export const SessionTable = memo(function SessionTable({
             STATUS
           </Text>
         </Box>
-        <Box flexGrow={1}>
+        <Box flexGrow={1} flexBasis={0}>
           <Text bold dimColor>
             CWD
+          </Text>
+        </Box>
+        <Box flexGrow={1} flexBasis={0}>
+          <Text bold dimColor>
+            LAST PROMPT
           </Text>
         </Box>
         <Box width={COL_TERMINAL}>
@@ -168,9 +174,14 @@ export const SessionTable = memo(function SessionTable({
                 {symbol} {label}
               </Text>
             </Box>
-            <Box flexGrow={1}>
-              <Text color={isSelected ? 'white' : 'gray'} backgroundColor={bg}>
+            <Box flexGrow={1} flexBasis={0}>
+              <Text color={isSelected ? 'white' : 'gray'} backgroundColor={bg} wrap="truncate">
                 {cwd}
+              </Text>
+            </Box>
+            <Box flexGrow={1} flexBasis={0}>
+              <Text dimColor={!isMarked} backgroundColor={bg} wrap="truncate">
+                {session.lastPrompt ?? ''}
               </Text>
             </Box>
             <Box width={COL_TERMINAL}>

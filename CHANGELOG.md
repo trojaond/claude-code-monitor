@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Click Window menu item twice (Ghostty quirk: first selects tab, second brings window to front)
   - Use `name` attribute instead of `title` for Window menu search
   - Add `AXRaise` to ensure window comes to front
-  - Remove `activate` call that brought ccm window back to front
+  - Remove `activate` call that brought ccn window back to front
 - Fix Web UI sendText/sendKeystroke targeting wrong session in Ghostty
   - Focus correct tab before sending text/keystroke
   - Prevents input going to currently active window instead of target session
@@ -95,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-detect Ghostty and prompt for `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` setting
   - Prevents Claude Code from overwriting terminal titles during execution
   - Required for reliable tab identification in Ghostty
-  - Prompt appears on `ccm` launch or `ccm setup` for Ghostty users
+  - Prompt appears on `ccn` launch or `ccn setup` for Ghostty users
   - User's choice is remembered to avoid repeated prompts
 
 ### Changed
@@ -194,7 +194,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Send text messages to terminal (multi-line supported)
   - Permission prompt responses (y/n/a) and Ctrl+C support
   - Bottom sheet modal with swipe-to-close gesture
-- New command: `ccm serve` - Start mobile web server only
+- New command: `ccn serve` - Start mobile web server only
 - QR code display in terminal UI (press `h` to toggle)
 - Token-based authentication for mobile access
 - Auto-select available port when default port (3456) is in use
@@ -215,7 +215,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Use alternate screen buffer to prevent TUI stacking on re-render ([#5](https://github.com/onikan27/claude-code-monitor/pull/5)) by [@msdjzmst](https://github.com/msdjzmst)
+- Use alternate screen buffer to prevent TUI stacking on re-render ([#5](https://github.com/onikan27/claude-code-navigator/pull/5)) by [@msdjzmst](https://github.com/msdjzmst)
 
 ## [1.0.3] - 2026-01-17
 
@@ -251,8 +251,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Focus feature to switch to session's terminal tab
   - Full support for iTerm2 and Terminal.app (TTY-based targeting)
   - Limited support for Ghostty (app activation only)
-- Automatic hook setup via `ccm setup`
+- Automatic hook setup via `ccn setup`
 - Session status tracking (running, waiting for input, stopped)
 - File-based session state management (no server required)
 - Session auto-cleanup on timeout (30 minutes) or TTY termination
-- Commands: `ccm`, `ccm watch`, `ccm setup`, `ccm list`, `ccm clear`
+- Commands: `ccn`, `ccn watch`, `ccn setup`, `ccn list`, `ccn clear`

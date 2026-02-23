@@ -8,7 +8,7 @@ describe('getContextUsageFromTranscript', () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'ccm-test-'));
+    tmpDir = mkdtempSync(join(tmpdir(), 'ccn-test-'));
   });
 
   afterEach(() => {

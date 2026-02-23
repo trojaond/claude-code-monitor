@@ -105,8 +105,8 @@ async function runWithAltScreen(options: DashboardOptions = {}) {
 const program = new Command();
 
 program
-  .name('ccm')
-  .description('Claude Code Monitor - CLI-based session monitoring')
+  .name('ccn')
+  .description('Claude Code Navigator - CLI-based session monitoring')
   .version(pkg.version)
   .option('--qr', 'Show QR code for mobile access')
   .option('-t, --tailscale', 'Prefer Tailscale IP for mobile access')

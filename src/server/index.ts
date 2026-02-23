@@ -537,7 +537,7 @@ export async function startServer(options: ServerOptions = {}): Promise<void> {
   const components = createServerComponents(authToken);
 
   components.server.listen(actualPort, ip, () => {
-    console.log('\n  Claude Code Monitor - Mobile Web Interface\n');
+    console.log('\n  Claude Code Navigator - Mobile Web Interface\n');
     console.log(`  Server running at: ${url}\n`);
     if (actualPort !== port) {
       console.log(`  (Port ${port} was in use, using ${actualPort} instead)\n`);

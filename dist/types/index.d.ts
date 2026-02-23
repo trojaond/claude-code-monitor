@@ -9,6 +9,8 @@ export interface HookEvent {
     terminal?: string;
     model?: string;
     costUSD?: number;
+    contextPercent?: number;
+    lastPrompt?: string;
 }
 export type SessionStatus = 'running' | 'waiting_input' | 'stopped';
 export interface Session {
@@ -22,6 +24,8 @@ export interface Session {
     terminal?: string;
     model?: string;
     costUSD?: number;
+    contextPercent?: number;
+    lastPrompt?: string;
 }
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 export interface Task {

@@ -1,7 +1,7 @@
 import { flushPendingWrites, updateSession } from '../store/file-store.js';
 import { readJsonFromStdin } from '../utils/stdin.js';
 import { detectTerminalApp } from '../utils/terminal-detect.js';
-import { buildTranscriptPath, getCostFromTranscript, getModelFromTranscript, } from '../utils/transcript.js';
+import { buildTranscriptPath, getContextUsageFromTranscript, getCostFromTranscript, getModelFromTranscript, } from '../utils/transcript.js';
 // Allowed hook event names (whitelist)
 /** @internal */
 export const VALID_HOOK_EVENTS = new Set([
@@ -56,6 +56,11 @@ export async function handleHookEvent(eventName, tty) {
     const terminal = detectTerminalApp(tty);
     const model = transcriptPath ? getModelFromTranscript(transcriptPath) : undefined;
     const costUSD = transcriptPath ? getCostFromTranscript(transcriptPath) : undefined;
+    const contextPercent = transcriptPath ? getContextUsageFromTranscript(transcriptPath) : undefined;
+    // Extract user prompt from UserPromptSubmit events
+    const lastPrompt = eventName === 'UserPromptSubmit' && typeof rawInput.prompt === 'string'
+        ? rawInput.prompt
+        : undefined;
     const event = {
         session_id: rawInput.session_id,
         cwd,
@@ -66,6 +71,8 @@ export async function handleHookEvent(eventName, tty) {
         terminal,
         model,
         costUSD,
+        contextPercent,
+        lastPrompt,
     };
     updateSession(event);
     // Ensure data is written before process exits (hooks are short-lived processes)

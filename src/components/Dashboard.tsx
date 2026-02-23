@@ -50,7 +50,7 @@ export function Dashboard({
   const [qrCodeUserPref, setQrCodeUserPref] = useState(
     () => initialShowQr ?? readSettings().qrCodeVisible
   );
-  // Read terminal height at render time. On actual resize, ccm.tsx triggers
+  // Read terminal height at render time. On actual resize, ccn.tsx triggers
   // a full clear+rerender which re-mounts this component with fresh values.
   // No resize listener needed here — avoids spurious re-renders from
   // keyboard escape sequences that fire fake resize events.
@@ -224,7 +224,7 @@ export function Dashboard({
         {/* Header */}
         <Box>
           <Text bold color="cyan">
-            Claude Code Monitor
+            Claude Code Navigator
           </Text>
           <Text dimColor> </Text>
           <Text color="gray">● {running}</Text>

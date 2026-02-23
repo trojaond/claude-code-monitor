@@ -16,7 +16,9 @@ function sessionsEqual(a, b) {
             a[i].lastMessage !== b[i].lastMessage ||
             a[i].model !== b[i].model ||
             a[i].costUSD !== b[i].costUSD ||
-            a[i].terminal !== b[i].terminal) {
+            a[i].terminal !== b[i].terminal ||
+            a[i].contextPercent !== b[i].contextPercent ||
+            a[i].lastPrompt !== b[i].lastPrompt) {
             return false;
         }
     }

@@ -17,4 +17,9 @@ export declare function getModelFromTranscript(transcriptPath: string): string |
  * Sums all message.usage entries and applies model-specific pricing.
  */
 export declare function getCostFromTranscript(transcriptPath: string): number | undefined;
+/**
+ * Get context window usage percentage from the last assistant message.
+ * Returns 0-100 representing how full the context window is.
+ */
+export declare function getContextUsageFromTranscript(transcriptPath: string): number | undefined;
 //# sourceMappingURL=transcript.d.ts.map

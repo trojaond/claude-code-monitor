@@ -9,30 +9,30 @@ const SETTINGS_FILE = join(CLAUDE_DIR, 'settings.json');
 /** Environment variable key to disable Claude Code terminal title override */
 const DISABLE_TITLE_ENV_KEY = 'CLAUDE_CODE_DISABLE_TERMINAL_TITLE';
 /** Environment variable key to track if Ghostty setting was asked */
-const GHOSTTY_ASKED_ENV_KEY = 'CLAUDE_CODE_MONITOR_GHOSTTY_ASKED';
+const GHOSTTY_ASKED_ENV_KEY = 'CLAUDE_CODE_NAVIGATOR_GHOSTTY_ASKED';
 /**
- * Check if a command string is a ccm hook command for the given event
+ * Check if a command string is a ccn hook command for the given event
  * @internal
  */
-function isCcmHookCommand(command, eventName) {
-    return command === `ccm hook ${eventName}` || command === `npx ${PACKAGE_NAME} hook ${eventName}`;
+function isCcnHookCommand(command, eventName) {
+    return command === `ccn hook ${eventName}` || command === `npx ${PACKAGE_NAME} hook ${eventName}`;
 }
 /**
- * Check if the ccm hook is already configured for the given event
+ * Check if the ccn hook is already configured for the given event
  * @internal
  */
-function hasCcmHookForEvent(entries, eventName) {
+function hasCcnHookForEvent(entries, eventName) {
     if (!entries)
         return false;
-    return entries.some((entry) => entry.hooks.some((h) => isCcmHookCommand(h.command, eventName)));
+    return entries.some((entry) => entry.hooks.some((h) => isCcnHookCommand(h.command, eventName)));
 }
 /**
- * Check if ccm command is in PATH and return the appropriate command
+ * Check if ccn command is in PATH and return the appropriate command
  */
-function getCcmCommand() {
-    const result = spawnSync('which', ['ccm'], { encoding: 'utf-8' });
+function getCcnCommand() {
+    const result = spawnSync('which', ['ccn'], { encoding: 'utf-8' });
     if (result.status === 0) {
-        return 'ccm';
+        return 'ccn';
     }
     return `npx ${PACKAGE_NAME}`;
 }
@@ -116,7 +116,7 @@ function categorizeHooks(settings) {
     const toAdd = [];
     const toSkip = [];
     for (const eventName of HOOK_EVENTS) {
-        if (hasCcmHookForEvent(settings.hooks?.[eventName], eventName)) {
+        if (hasCcnHookForEvent(settings.hooks?.[eventName], eventName)) {
             toSkip.push(eventName);
         }
         else {
@@ -181,7 +181,7 @@ export function isHooksConfigured() {
         }
         // Check if all hook events are configured
         for (const eventName of HOOK_EVENTS) {
-            if (!hasCcmHookForEvent(settings.hooks[eventName], eventName)) {
+            if (!hasCcnHookForEvent(settings.hooks[eventName], eventName)) {
                 return false;
             }
         }
@@ -192,10 +192,10 @@ export function isHooksConfigured() {
     }
 }
 export async function setupHooks() {
-    console.log('Claude Code Monitor Setup');
-    console.log('=========================');
+    console.log('Claude Code Navigator Setup');
+    console.log('============================');
     console.log('');
-    const baseCommand = getCcmCommand();
+    const baseCommand = getCcnCommand();
     console.log(`Using command: ${baseCommand}`);
     console.log('');
     // Ensure .claude directory exists
@@ -267,7 +267,7 @@ export async function setupHooks() {
     }
 }
 /**
- * Prompt for Ghostty setting if needed (called from ccm command when hooks are already configured)
+ * Prompt for Ghostty setting if needed (called from ccn command when hooks are already configured)
  */
 export async function promptGhosttySettingIfNeeded() {
     const ghosttyInstalled = isGhosttyInstalled();

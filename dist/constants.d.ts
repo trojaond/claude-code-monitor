@@ -1,8 +1,8 @@
 /**
- * Shared constants for claude-code-monitor
+ * Shared constants for claude-code-navigator
  */
 /** Package name used for npx commands */
-export declare const PACKAGE_NAME = "claude-code-monitor";
+export declare const PACKAGE_NAME = "claude-code-navigator";
 /** TTY cache TTL in milliseconds (30 seconds) */
 export declare const TTY_CACHE_TTL_MS = 30000;
 /** Maximum number of entries in TTY cache */

@@ -17,7 +17,7 @@ interface FocusResponse {
 const MAX_REQUEST_SIZE = 4096;
 
 function getSocketPath(): string {
-  return `/tmp/ccm-vscode-${process.pid}.sock`;
+  return `/tmp/ccn-vscode-${process.pid}.sock`;
 }
 
 function cleanupSocket(socketPath: string): void {
@@ -78,7 +78,7 @@ export function createSocketServer(): { server: net.Server; socketPath: string }
   });
 
   server.on('error', (err) => {
-    console.error('ccm-terminal-bridge socket error:', err.message);
+    console.error('ccn-terminal-bridge socket error:', err.message);
   });
 
   return { server, socketPath };
