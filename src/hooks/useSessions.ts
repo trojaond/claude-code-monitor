@@ -18,7 +18,8 @@ function sessionsEqual(a: Session[], b: Session[]): boolean {
       a[i].lastMessage !== b[i].lastMessage ||
       a[i].model !== b[i].model ||
       a[i].costUSD !== b[i].costUSD ||
-      a[i].terminal !== b[i].terminal
+      a[i].terminal !== b[i].terminal ||
+      a[i].contextPercent !== b[i].contextPercent
     ) {
       return false;
     }
