@@ -1,6 +1,6 @@
 import { Box, Text, useApp, useInput, useStdout } from 'ink';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MIN_TERMINAL_HEIGHT_FOR_QR } from '../constants.js';
 import { useServer } from '../hooks/useServer.js';
 import { useSessions } from '../hooks/useSessions.js';
@@ -28,24 +28,11 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   const [qrCodeUserPref, setQrCodeUserPref] = useState(
     () => initialShowQr ?? readSettings().qrCodeVisible
   );
-  const [terminalHeight, setTerminalHeight] = useState(stdout?.rows ?? 40);
-
-  // Monitor terminal size changes
-  useEffect(() => {
-    if (!stdout) return;
-
-    const handleResize = () => {
-      setTerminalHeight(stdout.rows ?? 40);
-    };
-
-    // Initial size
-    setTerminalHeight(stdout.rows ?? 40);
-
-    stdout.on('resize', handleResize);
-    return () => {
-      stdout.off('resize', handleResize);
-    };
-  }, [stdout]);
+  // Read terminal height at render time. On actual resize, ccm.tsx triggers
+  // a full clear+rerender which re-mounts this component with fresh values.
+  // No resize listener needed here — avoids spurious re-renders from
+  // keyboard escape sequences that fire fake resize events.
+  const terminalHeight = stdout?.rows ?? 40;
 
   // QR code visibility: user preference AND terminal has enough space
   const canShowQr = terminalHeight >= MIN_TERMINAL_HEIGHT_FOR_QR;
@@ -60,7 +47,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   const focusSessionByIndex = (index: number) => {
     const session = sessions[index];
     if (session?.tty) {
-      focusSession(session.tty);
+      focusSession(session.tty, session.cwd);
     }
   };
 

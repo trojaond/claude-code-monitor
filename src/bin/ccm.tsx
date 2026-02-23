@@ -65,8 +65,17 @@ async function runWithAltScreen(options: DashboardOptions = {}) {
     { patchConsole: false }
   );
 
-  // リサイズ時にInkの描画をクリアして再描画
+  // Only clear + rerender when the terminal size actually changes.
+  // Keyboard escape sequences can fire spurious resize events where
+  // rows/columns haven't changed — those must be ignored to avoid flicker.
+  let lastCols = process.stdout.columns;
+  let lastRows = process.stdout.rows;
   const handleResize = () => {
+    const cols = process.stdout.columns;
+    const rows = process.stdout.rows;
+    if (cols === lastCols && rows === lastRows) return;
+    lastCols = cols;
+    lastRows = rows;
     instance.clear();
     instance.rerender(
       <Dashboard initialShowQr={options.qr} preferTailscale={options.preferTailscale} />

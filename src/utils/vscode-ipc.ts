@@ -7,6 +7,7 @@ const SOCKET_DIR = '/tmp';
 export interface VSCodeIPCResponse {
   success: boolean;
   error?: string;
+  windowTitle?: string;
 }
 
 /**

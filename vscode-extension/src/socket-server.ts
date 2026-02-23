@@ -11,6 +11,7 @@ interface FocusRequest {
 interface FocusResponse {
   success: boolean;
   error?: string;
+  windowTitle?: string;
 }
 
 const MAX_REQUEST_SIZE = 4096;
@@ -106,7 +107,9 @@ async function handleRequest(jsonStr: string, connection: net.Socket): Promise<v
     const terminal = await findTerminalByTty(request.tty);
     if (terminal) {
       terminal.show(true);
-      respond(connection, { success: true });
+      // Return the workspace folder name so the caller can raise the correct window
+      const workspaceName = vscode.workspace.workspaceFolders?.[0]?.name;
+      respond(connection, { success: true, windowTitle: workspaceName });
     } else {
       respond(connection, {
         success: false,
