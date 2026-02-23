@@ -28,7 +28,7 @@ interface DashboardProps {
 export function Dashboard({
   initialShowQr,
   preferTailscale,
-  serverEnabled = true,
+  serverEnabled = false,
 }: DashboardProps): React.ReactElement {
   const { sessions, loading, error } = useSessions();
   const {
