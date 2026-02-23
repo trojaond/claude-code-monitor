@@ -287,6 +287,51 @@
       gap: 3px;
     }
 
+    .ctx-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .ctx-bar-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 32px;
+    }
+
+    .ctx-bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--bg-input);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .ctx-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .ctx-bar-fill.green { background: var(--status-running); }
+    .ctx-bar-fill.yellow { background: var(--status-waiting); }
+    .ctx-bar-fill.red { background: var(--danger); }
+
+    .ctx-bar-pct {
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    .ctx-bar-pct.green { color: var(--status-running); }
+    .ctx-bar-pct.yellow { color: var(--status-waiting); }
+    .ctx-bar-pct.red { color: var(--danger); }
+
     /* Message Preview */
     .card-message {
       background: var(--bg-input);
@@ -1363,6 +1408,12 @@
       return '$' + cost.toFixed(2);
     }
 
+    function getCtxBarColor(percent) {
+      if (percent >= 80) return 'red';
+      if (percent >= 50) return 'yellow';
+      return 'green';
+    }
+
     function truncateMessage(text, maxLen = 100) {
       if (!text) return '';
       const clean = text.replace(/[#*`_~\[\]]/g, '').replace(/\s+/g, ' ').trim();
@@ -1839,6 +1890,16 @@
           ? `<div class="card-meta">${metaItems.join('')}</div>`
           : '';
 
+        const ctxHtml = session.contextPercent !== undefined
+          ? `<div class="ctx-bar">
+               <span class="ctx-bar-label">CTX</span>
+               <div class="ctx-bar-track">
+                 <div class="ctx-bar-fill ${getCtxBarColor(session.contextPercent)}" style="width: ${Math.min(session.contextPercent, 100)}%"></div>
+               </div>
+               <span class="ctx-bar-pct ${getCtxBarColor(session.contextPercent)}">${session.contextPercent}%</span>
+             </div>`
+          : '';
+
         return `
           <div class="card ${safeStatus}" data-session-id="${escapeHtml(session.session_id)}">
             <div class="card-status">
@@ -1850,6 +1911,7 @@
               <div class="card-name">${dirName}</div>
               <div class="card-path">${shortPath}</div>
               ${metaHtml}
+              ${ctxHtml}
               <div class="card-message">
                 ${msgPreview
                   ? `<div class="card-message-text">${msgPreview}</div>`
