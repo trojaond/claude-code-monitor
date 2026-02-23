@@ -1,0 +1,1 @@
+{"version":3,"file":"terminal-strategy.d.ts","sourceRoot":"","sources":["../../src/utils/terminal-strategy.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,MAAM,WAAW,kBAAkB;IACjC,MAAM,EAAE,MAAM,OAAO,CAAC;IACtB,WAAW,EAAE,MAAM,OAAO,CAAC;IAC3B,OAAO,EAAE,MAAM,OAAO,CAAC;IACvB,MAAM,CAAC,EAAE,MAAM,OAAO,CAAC;CACxB;AAED;;;;;;GAMG;AACH,wBAAgB,2BAA2B,CAAC,UAAU,EAAE,kBAAkB,GAAG,OAAO,CAQnF"}

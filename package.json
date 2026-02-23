@@ -32,7 +32,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "prepare": "npm run build",
+    "prepare": "test -d node_modules/typescript && npm run build || true",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
