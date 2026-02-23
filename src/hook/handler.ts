@@ -4,6 +4,7 @@ import { readJsonFromStdin } from '../utils/stdin.js';
 import { detectTerminalApp } from '../utils/terminal-detect.js';
 import {
   buildTranscriptPath,
+  getContextUsageFromTranscript,
   getCostFromTranscript,
   getModelFromTranscript,
 } from '../utils/transcript.js';
@@ -71,6 +72,7 @@ export async function handleHookEvent(eventName: string, tty?: string): Promise<
   const terminal = detectTerminalApp(tty);
   const model = transcriptPath ? getModelFromTranscript(transcriptPath) : undefined;
   const costUSD = transcriptPath ? getCostFromTranscript(transcriptPath) : undefined;
+  const contextPercent = transcriptPath ? getContextUsageFromTranscript(transcriptPath) : undefined;
 
   const event: HookEvent = {
     session_id: rawInput.session_id,
@@ -82,6 +84,7 @@ export async function handleHookEvent(eventName: string, tty?: string): Promise<
     terminal,
     model,
     costUSD,
+    contextPercent,
   };
 
   updateSession(event);

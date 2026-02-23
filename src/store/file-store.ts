@@ -261,6 +261,7 @@ export function updateSession(event: HookEvent): Session {
     terminal: event.terminal ?? existing?.terminal,
     model: event.model ?? existing?.model,
     costUSD: event.costUSD ?? existing?.costUSD,
+    contextPercent: event.contextPercent ?? existing?.contextPercent,
   };
 
   store.sessions[key] = session;
