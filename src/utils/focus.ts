@@ -3,13 +3,23 @@ import { executeAppleScript } from './applescript.js';
 import { executeWithTerminalFallback } from './terminal-strategy.js';
 import { findVSCodeSockets, sendFocusRequest } from './vscode-ipc.js';
 
+/** Maximum length for strings embedded in AppleScript to prevent abuse */
+const MAX_APPLESCRIPT_STRING_LENGTH = 50000;
+
 /**
- * Sanitize a string for safe use in AppleScript.
+ * Sanitize a string for safe use in AppleScript double-quoted strings.
  * Escapes backslashes, double quotes, control characters, and AppleScript special chars.
+ * Includes a post-sanitization assertion to verify no unescaped quotes remain.
  * @internal
  */
 export function sanitizeForAppleScript(str: string): string {
-  return str
+  if (str.length > MAX_APPLESCRIPT_STRING_LENGTH) {
+    throw new Error(
+      `Input too long for AppleScript embedding (${str.length} > ${MAX_APPLESCRIPT_STRING_LENGTH})`
+    );
+  }
+
+  const sanitized = str
     .replace(/\\/g, '\\\\') // Backslash (must be first)
     .replace(/"/g, '\\"') // Double quote
     .replace(/\n/g, '\\n') // Newline
@@ -17,6 +27,14 @@ export function sanitizeForAppleScript(str: string): string {
     .replace(/\t/g, '\\t') // Tab
     .replace(/\$/g, '\\$') // Dollar sign (variable reference in some contexts)
     .replace(/`/g, '\\`'); // Backtick
+
+  // Defense-in-depth: verify no unescaped double quotes remain.
+  // An unescaped quote is a `"` NOT preceded by an odd number of backslashes.
+  if (/(?<!\\)(?:\\\\)*"/.test(sanitized.replace(/\\"/g, ''))) {
+    throw new Error('Sanitization verification failed: unescaped quote detected');
+  }
+
+  return sanitized;
 }
 
 /**

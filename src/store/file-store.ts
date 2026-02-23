@@ -1,4 +1,13 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { WRITE_DEBOUNCE_MS } from '../constants.js';
@@ -11,6 +20,7 @@ export { isTtyAlive } from '../utils/tty-cache.js';
 
 const STORE_DIR = join(homedir(), '.claude-monitor');
 const STORE_FILE = join(STORE_DIR, 'sessions.json');
+const STORE_LOCK_FILE = join(STORE_DIR, 'sessions.json.lock');
 const SETTINGS_FILE = join(STORE_DIR, 'settings.json');
 
 export interface Settings {
@@ -29,6 +39,71 @@ function ensureStoreDir(): void {
   if (!existsSync(STORE_DIR)) {
     mkdirSync(STORE_DIR, { recursive: true, mode: 0o700 });
   }
+}
+
+/**
+ * Acquire an advisory file lock using O_EXCL (atomic on POSIX).
+ * Returns true if the lock was acquired, false if another process holds it.
+ * Automatically removes stale locks from crashed processes.
+ */
+function acquireLock(): boolean {
+  try {
+    // Try to create lock file exclusively
+    const fd = openSync(STORE_LOCK_FILE, 'wx', 0o600);
+    // Write PID for stale lock detection
+    writeFileSync(fd, `${process.pid}\n`, 'utf-8');
+    closeSync(fd);
+    return true;
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
+      return false;
+    }
+    // Lock file exists — check if it's stale
+    try {
+      const stat = readFileSync(STORE_LOCK_FILE, 'utf-8');
+      const lockPid = Number.parseInt(stat.trim(), 10);
+      // Check if the process is still alive
+      if (lockPid && !Number.isNaN(lockPid)) {
+        try {
+          process.kill(lockPid, 0); // Signal 0 = check existence
+          // Process is alive, lock is valid — give up
+          return false;
+        } catch {
+          // Process is dead, lock is stale — remove it
+        }
+      }
+    } catch {
+      // Can't read lock file — check age as fallback
+    }
+    // Remove stale lock and retry once
+    try {
+      unlinkSync(STORE_LOCK_FILE);
+      const fd = openSync(STORE_LOCK_FILE, 'wx', 0o600);
+      writeFileSync(fd, `${process.pid}\n`, 'utf-8');
+      closeSync(fd);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+function releaseLock(): void {
+  try {
+    unlinkSync(STORE_LOCK_FILE);
+  } catch {
+    // Lock already removed — acceptable
+  }
+}
+
+/**
+ * Atomically write data to a file using temp file + rename.
+ * On POSIX systems, rename() is atomic within the same filesystem.
+ */
+function atomicWriteFileSync(filePath: string, data: string, mode: number): void {
+  const tmpPath = `${filePath}.${process.pid}.tmp`;
+  writeFileSync(tmpPath, data, { encoding: 'utf-8', mode });
+  renameSync(tmpPath, filePath);
 }
 
 function getEmptyStoreData(): StoreData {
@@ -60,7 +135,12 @@ function flushWrite(): void {
     try {
       ensureStoreDir();
       cachedStore.updated_at = new Date().toISOString();
-      writeFileSync(STORE_FILE, JSON.stringify(cachedStore), { encoding: 'utf-8', mode: 0o600 });
+      const locked = acquireLock();
+      try {
+        atomicWriteFileSync(STORE_FILE, JSON.stringify(cachedStore), 0o600);
+      } finally {
+        if (locked) releaseLock();
+      }
     } catch {
       // Silently ignore write errors to avoid crashing the hook process
       // Data loss is acceptable as session data is ephemeral
@@ -261,10 +341,7 @@ export function readSettings(): Settings {
 export function writeSettings(settings: Settings): void {
   ensureStoreDir();
   try {
-    writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), {
-      encoding: 'utf-8',
-      mode: 0o600,
-    });
+    atomicWriteFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 0o600);
   } catch {
     // Silently ignore write errors
   }

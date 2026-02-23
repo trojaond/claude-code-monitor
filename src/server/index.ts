@@ -53,11 +53,30 @@ async function findAvailablePort(startPort: number, host: string): Promise<numbe
   );
 }
 
+/** Token TTL: 24 hours (local tool, re-scanning QR daily is reasonable) */
+const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+
+interface AuthToken {
+  value: string;
+  createdAt: number;
+}
+
 /**
- * Generate a random authentication token.
+ * Generate a random authentication token with creation timestamp.
  */
-function generateAuthToken(): string {
-  return randomBytes(32).toString('hex');
+function generateAuthToken(): AuthToken {
+  return {
+    value: randomBytes(32).toString('hex'),
+    createdAt: Date.now(),
+  };
+}
+
+/**
+ * Validate that a request token matches and has not expired.
+ */
+function isValidToken(requestToken: string | null, authToken: AuthToken): boolean {
+  if (!requestToken || requestToken !== authToken.value) return false;
+  return Date.now() - authToken.createdAt < TOKEN_TTL_MS;
 }
 
 interface WebSocketMessage {
@@ -299,15 +318,24 @@ function sendSessionsToClient(ws: WebSocket): void {
   ws.send(JSON.stringify({ type: 'sessions', data: sessions }));
 }
 
+/** Maximum number of concurrent WebSocket connections */
+const MAX_WS_CONNECTIONS = 20;
+
 /**
  * Setup WebSocket connection handlers.
  */
-function setupWebSocketHandlers(wss: WebSocketServer, validToken: string): void {
+function setupWebSocketHandlers(wss: WebSocketServer, authToken: AuthToken): void {
   wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+    // Enforce connection limit to prevent resource exhaustion
+    if (wss.clients.size > MAX_WS_CONNECTIONS) {
+      ws.close(1013, 'Too many connections');
+      return;
+    }
+
     const url = new URL(req.url || '/', `ws://${req.headers.host}`);
     const requestToken = url.searchParams.get('token');
 
-    if (requestToken !== validToken) {
+    if (!isValidToken(requestToken, authToken)) {
       ws.close(1008, 'Unauthorized');
       return;
     }
@@ -374,7 +402,7 @@ function getContentType(path: string): string {
   return 'text/plain';
 }
 
-function serveStatic(req: IncomingMessage, res: ServerResponse, validToken: string): void {
+function serveStatic(req: IncomingMessage, res: ServerResponse, authToken: AuthToken): void {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
   const requestToken = url.searchParams.get('token');
   const filePath = url.pathname === '/' ? '/index.html' : url.pathname;
@@ -382,9 +410,13 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, validToken: stri
   // Allow static library files without token (they contain no sensitive data)
   const isPublicLibrary = filePath.startsWith('/lib/') && filePath.endsWith('.js');
 
-  if (!isPublicLibrary && requestToken !== validToken) {
+  if (!isPublicLibrary && !isValidToken(requestToken, authToken)) {
+    const expired = requestToken === authToken.value;
+    const message = expired
+      ? 'Token expired - restart the server to get a new token'
+      : 'Unauthorized - Invalid or missing token';
     res.writeHead(401, { 'Content-Type': 'text/plain' });
-    res.end('Unauthorized - Invalid or missing token');
+    res.end(message);
     return;
   }
 
@@ -427,10 +459,10 @@ interface ServerComponents {
  * Create server components (HTTP server, WebSocket server, file watcher).
  * Shared by createMobileServer and startServer.
  */
-function createServerComponents(token: string): ServerComponents {
-  const server = createServer((req, res) => serveStatic(req, res, token));
+function createServerComponents(authToken: AuthToken): ServerComponents {
+  const server = createServer((req, res) => serveStatic(req, res, authToken));
   const wss = new WebSocketServer({ server });
-  setupWebSocketHandlers(wss, token);
+  setupWebSocketHandlers(wss, authToken);
 
   const storePath = getStorePath();
   const watcher = chokidar.watch(storePath, {
@@ -471,11 +503,11 @@ export async function createMobileServer(options: ServerOptions = {}): Promise<S
   const { ip, localIP, tailscaleIP } = resolveServerIP(preferTailscale);
 
   const actualPort = await findAvailablePort(port, ip);
-  const token = generateAuthToken();
-  const url = `http://${ip}:${actualPort}?token=${token}`;
+  const authToken = generateAuthToken();
+  const url = `http://${ip}:${actualPort}?token=${authToken.value}`;
   const qrCode = await generateQRCode(url);
 
-  const components = createServerComponents(token);
+  const components = createServerComponents(authToken);
 
   await new Promise<void>((resolve) => {
     components.server.listen(actualPort, ip, resolve);
@@ -484,7 +516,7 @@ export async function createMobileServer(options: ServerOptions = {}): Promise<S
   return {
     url,
     qrCode,
-    token,
+    token: authToken.value,
     port: actualPort,
     ip,
     tailscaleIP,
@@ -499,10 +531,10 @@ export async function startServer(options: ServerOptions = {}): Promise<void> {
   const { ip, tailscaleIP } = resolveServerIP(preferTailscale);
 
   const actualPort = await findAvailablePort(port, ip);
-  const token = generateAuthToken();
-  const url = `http://${ip}:${actualPort}?token=${token}`;
+  const authToken = generateAuthToken();
+  const url = `http://${ip}:${actualPort}?token=${authToken.value}`;
 
-  const components = createServerComponents(token);
+  const components = createServerComponents(authToken);
 
   components.server.listen(actualPort, ip, () => {
     console.log('\n  Claude Code Monitor - Mobile Web Interface\n');
@@ -515,7 +547,8 @@ export async function startServer(options: ServerOptions = {}): Promise<void> {
     }
     console.log('  Scan this QR code with your phone:\n');
     qrcode.generate(url, { small: true });
-    console.log('\n  Press Ctrl+C to stop the server.\n');
+    console.log(`\n  Token expires in 24 hours. Restart server to refresh.`);
+    console.log('  Press Ctrl+C to stop the server.\n');
   });
 
   // Graceful shutdown handler for both SIGINT (Ctrl+C) and SIGTERM (Docker/K8s)
