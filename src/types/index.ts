@@ -17,6 +17,7 @@ export interface HookEvent {
   terminal?: string;
   model?: string;
   costUSD?: number;
+  contextPercent?: number;
 }
 
 // Session status
@@ -34,6 +35,7 @@ export interface Session {
   terminal?: string; // e.g., "iTerm2", "VSCode", "Terminal.app", "Ghostty"
   model?: string; // e.g., "claude-opus-4-6"
   costUSD?: number; // e.g., 0.42
+  contextPercent?: number; // 0-100, context window usage percentage
 }
 
 // Task status (from TodoWrite / TaskCreate / TaskUpdate)
