@@ -7,10 +7,10 @@
 **Monitor multiple Claude Code sessions in real-time from your terminal or smartphone.**
 
 ### Terminal UI
-Monitor sessions with keyboard navigation
+K9s-style table view with real-time session monitoring
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/onikan27/claude-code-monitor/main/docs/ccm-demo.gif" alt="Terminal UI Demo" width="800">
+  <img src="https://raw.githubusercontent.com/onikan27/claude-code-monitor/main/docs/ccm-screenshot.png" alt="Terminal UI" width="800">
 </p>
 
 ### Mobile Web
@@ -26,10 +26,10 @@ Control from your phone (same Wi-Fi or Tailscale)
 
 | Terminal (TUI) | Mobile Web |
 |----------------|------------|
-| Real-time session monitoring | Monitor from your smartphone |
+| K9s-style columnar table view | Monitor from your smartphone |
 | Quick tab focus with keyboard | Remote terminal focus |
 | Vim-style navigation | Send messages to terminal |
-| Simple status display | Permission prompt navigation |
+| Task detail view per session | Permission prompt navigation |
 | | Screen capture with pinch zoom |
 
 - 🔌 **Serverless** - File-based state management, no API server required
@@ -114,6 +114,7 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 |--------|-------------|
 | `--qr` | Show QR code on startup |
 | `-t, --tailscale` | Prefer Tailscale IP for mobile access |
+| `--no-server` | Disable mobile web server (dashboard only) |
 | `-p, --port <port>` | Specify port (serve command only) |
 
 ### Keybindings
@@ -123,6 +124,8 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `↑` / `k` | Move up |
 | `↓` / `j` | Move down |
 | `Enter` / `f` | Focus selected session |
+| `s` | View tasks for selected session |
+| `m` | Mark/unmark selected session |
 | `1-9` | Quick select & focus |
 | `h` | Show/Hide QR code |
 | `c` | Clear all sessions |

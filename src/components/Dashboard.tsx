@@ -9,7 +9,7 @@ import type { Task } from '../types/index.js';
 import { focusSession } from '../utils/focus.js';
 import { getTasksFromTranscript } from '../utils/tasks.js';
 import { buildTranscriptPath } from '../utils/transcript.js';
-import { SessionCard } from './SessionCard.js';
+import { SessionTable } from './SessionTable.js';
 import { TaskDetailView } from './TaskDetailView.js';
 
 type ViewMode = 'list' | 'tasks';
@@ -21,12 +21,25 @@ interface DashboardProps {
   initialShowQr?: boolean;
   /** Prefer Tailscale IP for mobile access */
   preferTailscale?: boolean;
+  /** Enable/disable the mobile web server (default: true) */
+  serverEnabled?: boolean;
 }
 
-export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): React.ReactElement {
+export function Dashboard({
+  initialShowQr,
+  preferTailscale,
+  serverEnabled = true,
+}: DashboardProps): React.ReactElement {
   const { sessions, loading, error } = useSessions();
-  const { url, qrCode, tailscaleIP, loading: serverLoading } = useServer({ preferTailscale });
+  const {
+    url,
+    qrCode,
+    tailscaleIP,
+    loading: serverLoading,
+  } = useServer({ preferTailscale, enabled: serverEnabled });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [markedSessionIds, setMarkedSessionIds] = useState<Set<string>>(new Set());
+  const [now, setNow] = useState(Date.now());
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [taskData, setTaskData] = useState<Task[] | undefined>();
   const [taskLoading, setTaskLoading] = useState(false);
@@ -67,6 +80,12 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       focusSessionByIndex(index);
     }
   };
+
+  // Tick every second to keep the LAST column live
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Auto-return to list view if selected session disappears
   useEffect(() => {
@@ -150,6 +169,21 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       openTaskView();
       return;
     }
+    if (input === 'm') {
+      const session = sessions[selectedIndex];
+      if (session) {
+        setMarkedSessionIds((prev) => {
+          const next = new Set(prev);
+          if (next.has(session.session_id)) {
+            next.delete(session.session_id);
+          } else {
+            next.add(session.session_id);
+          }
+          return next;
+        });
+      }
+      return;
+    }
     if (QUICK_SELECT_KEYS.includes(input)) {
       handleQuickSelect(input);
       return;
@@ -159,7 +193,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       setSelectedIndex(0);
       return;
     }
-    if (input === 'h') {
+    if (input === 'h' && serverEnabled) {
       toggleQrCode();
       return;
     }
@@ -207,15 +241,13 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
               <Text dimColor>No active sessions</Text>
             </Box>
           ) : (
-            sessions.map((session, index) => (
-              <SessionCard
-                key={`${session.session_id}:${session.tty || ''}`}
-                session={session}
-                index={index}
-                isSelected={index === selectedIndex}
-                taskSummary={taskSummaries.get(session.session_id)}
-              />
-            ))
+            <SessionTable
+              sessions={sessions}
+              selectedIndex={selectedIndex}
+              taskSummaries={taskSummaries}
+              markedSessionIds={markedSessionIds}
+              now={now}
+            />
           )}
         </Box>
       </Box>
@@ -225,14 +257,15 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
         <Text dimColor>[↑↓]Select</Text>
         <Text dimColor>[Enter]Focus</Text>
         <Text dimColor>[s]Tasks</Text>
+        <Text dimColor>[m]Mark</Text>
         <Text dimColor>[1-9]Quick</Text>
         <Text dimColor>[c]Clear</Text>
-        <Text dimColor>[h]{qrCodeUserPref ? 'Hide' : 'Show'}URL</Text>
+        {serverEnabled && <Text dimColor>[h]{qrCodeUserPref ? 'Hide' : 'Show'}URL</Text>}
         <Text dimColor>[q]Quit</Text>
       </Box>
 
       {/* Web UI hint - shown when URL is hidden */}
-      {!serverLoading && url && !qrCodeUserPref && (
+      {serverEnabled && !serverLoading && url && !qrCodeUserPref && (
         <Box marginTop={1} borderStyle="round" borderColor="gray" paddingX={1}>
           <Text color="white">
             📱 Web UI available. Press [h] to show QR code for mobile access. (Same Wi-Fi required)
@@ -241,7 +274,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       )}
 
       {/* Web UI - only shown when qrCodeUserPref is true (security: URL contains token) */}
-      {!serverLoading && url && qrCodeUserPref && (
+      {serverEnabled && !serverLoading && url && qrCodeUserPref && (
         <Box marginTop={1} paddingX={1}>
           {qrCodeVisible && qrCode && (
             <Box flexShrink={0}>

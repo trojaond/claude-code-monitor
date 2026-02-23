@@ -5,6 +5,8 @@ import { createMobileServer, type ServerInfo } from '../server/index.js';
 export interface UseServerOptions {
   port?: number;
   preferTailscale?: boolean;
+  /** Set to false to skip server startup entirely */
+  enabled?: boolean;
 }
 
 export interface UseServerResult {
@@ -19,7 +21,7 @@ export interface UseServerResult {
 }
 
 export function useServer(options: UseServerOptions = {}): UseServerResult {
-  const { port = DEFAULT_SERVER_PORT, preferTailscale = false } = options;
+  const { port = DEFAULT_SERVER_PORT, preferTailscale = false, enabled = true } = options;
 
   const [url, setUrl] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
@@ -27,10 +29,11 @@ export function useServer(options: UseServerOptions = {}): UseServerResult {
   const [ip, setIp] = useState<string | null>(null);
   const [tailscaleIP, setTailscaleIP] = useState<string | null>(null);
   const [localIP, setLocalIP] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     // Use a ref-like object to track server across async boundaries
     // This prevents race condition where cleanup runs before async completes
     const serverRef: { current: ServerInfo | null } = { current: null };
@@ -68,7 +71,7 @@ export function useServer(options: UseServerOptions = {}): UseServerResult {
         serverRef.current.stop();
       }
     };
-  }, [port, preferTailscale]);
+  }, [port, preferTailscale, enabled]);
 
   return { url, qrCode, port: actualPort, ip, tailscaleIP, localIP, loading, error };
 }

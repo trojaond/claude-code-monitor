@@ -50,6 +50,7 @@ function getTtyFromAncestors(): string | undefined {
 interface DashboardOptions {
   qr?: boolean;
   preferTailscale?: boolean;
+  serverEnabled?: boolean;
 }
 
 /**
@@ -61,7 +62,11 @@ async function runWithAltScreen(options: DashboardOptions = {}) {
   process.stdout.write('\x1b[?25l');
 
   const instance = render(
-    <Dashboard initialShowQr={options.qr} preferTailscale={options.preferTailscale} />,
+    <Dashboard
+      initialShowQr={options.qr}
+      preferTailscale={options.preferTailscale}
+      serverEnabled={options.serverEnabled}
+    />,
     { patchConsole: false }
   );
 
@@ -78,7 +83,11 @@ async function runWithAltScreen(options: DashboardOptions = {}) {
     lastRows = rows;
     instance.clear();
     instance.rerender(
-      <Dashboard initialShowQr={options.qr} preferTailscale={options.preferTailscale} />
+      <Dashboard
+        initialShowQr={options.qr}
+        preferTailscale={options.preferTailscale}
+        serverEnabled={options.serverEnabled}
+      />
     );
   };
   process.stdout.on('resize', handleResize);
@@ -100,7 +109,8 @@ program
   .description('Claude Code Monitor - CLI-based session monitoring')
   .version(pkg.version)
   .option('--qr', 'Show QR code for mobile access')
-  .option('-t, --tailscale', 'Prefer Tailscale IP for mobile access');
+  .option('-t, --tailscale', 'Prefer Tailscale IP for mobile access')
+  .option('--no-server', 'Disable mobile web server (dashboard only)');
 
 program
   .command('watch')
@@ -108,8 +118,13 @@ program
   .description('Start the monitoring TUI')
   .option('--qr', 'Show QR code for mobile access')
   .option('-t, --tailscale', 'Prefer Tailscale IP for mobile access')
-  .action(async (options: { qr?: boolean; tailscale?: boolean }) => {
-    await runWithAltScreen({ qr: options.qr, preferTailscale: options.tailscale });
+  .option('--no-server', 'Disable mobile web server (dashboard only)')
+  .action(async (options: { qr?: boolean; tailscale?: boolean; server?: boolean }) => {
+    await runWithAltScreen({
+      qr: options.qr,
+      preferTailscale: options.tailscale,
+      serverEnabled: options.server,
+    });
   });
 
 program
@@ -195,8 +210,12 @@ async function defaultAction(options: DashboardOptions = {}) {
 
 // Handle default action (no subcommand)
 program.action(async () => {
-  const options = program.opts<{ qr?: boolean; tailscale?: boolean }>();
-  await defaultAction({ qr: options.qr, preferTailscale: options.tailscale });
+  const options = program.opts<{ qr?: boolean; tailscale?: boolean; server?: boolean }>();
+  await defaultAction({
+    qr: options.qr,
+    preferTailscale: options.tailscale,
+    serverEnabled: options.server,
+  });
 });
 
 program.parse();

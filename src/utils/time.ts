@@ -15,3 +15,20 @@ export function formatRelativeTime(timestamp: string): string {
   if (minutes > 0) return `${minutes}m ago`;
   return `${seconds}s ago`;
 }
+
+/**
+ * Format a timestamp as short relative time without "ago" suffix (e.g., "5s", "2m", "1h")
+ */
+export function formatRelativeTimeShort(timestamp: string): string {
+  const now = Date.now();
+  const then = new Date(timestamp).getTime();
+  const diffMs = now - then;
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) return `${hours}h`;
+  if (minutes > 0) return `${minutes}m`;
+  return `${seconds}s`;
+}
