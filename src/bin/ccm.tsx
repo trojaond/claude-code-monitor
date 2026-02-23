@@ -110,7 +110,7 @@ program
   .version(pkg.version)
   .option('--qr', 'Show QR code for mobile access')
   .option('-t, --tailscale', 'Prefer Tailscale IP for mobile access')
-  .option('--no-server', 'Disable mobile web server (dashboard only)');
+  .option('--server', 'Enable mobile web server for phone access');
 
 program
   .command('watch')
@@ -118,12 +118,12 @@ program
   .description('Start the monitoring TUI')
   .option('--qr', 'Show QR code for mobile access')
   .option('-t, --tailscale', 'Prefer Tailscale IP for mobile access')
-  .option('--no-server', 'Disable mobile web server (dashboard only)')
+  .option('--server', 'Enable mobile web server for phone access')
   .action(async (options: { qr?: boolean; tailscale?: boolean; server?: boolean }) => {
     await runWithAltScreen({
       qr: options.qr,
       preferTailscale: options.tailscale,
-      serverEnabled: options.server,
+      serverEnabled: options.server ?? false,
     });
   });
 
@@ -214,7 +214,7 @@ program.action(async () => {
   await defaultAction({
     qr: options.qr,
     preferTailscale: options.tailscale,
-    serverEnabled: options.server,
+    serverEnabled: options.server ?? false,
   });
 });
 

@@ -67,6 +67,12 @@ On first run, it automatically sets up hooks and launches the monitor.
 
 ### Mobile Access
 
+The mobile web server is off by default. Enable it with `--server`:
+
+```bash
+ccm --server
+```
+
 1. Press `h` to show QR code (default port: 3456)
 2. Scan with your smartphone (same Wi-Fi required)
 
@@ -112,9 +118,9 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 
 | Option | Description |
 |--------|-------------|
-| `--qr` | Show QR code on startup |
+| `--server` | Enable mobile web server for phone access (off by default) |
+| `--qr` | Show QR code on startup (implies `--server`) |
 | `-t, --tailscale` | Prefer Tailscale IP for mobile access |
-| `--no-server` | Disable mobile web server (dashboard only) |
 | `-p, --port <port>` | Specify port (serve command only) |
 
 ### Keybindings
@@ -127,7 +133,7 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `s` | View tasks for selected session |
 | `m` | Mark/unmark selected session |
 | `1-9` | Quick select & focus |
-| `h` | Show/Hide QR code |
+| `h` | Show/Hide QR code (requires `--server`) |
 | `c` | Clear all sessions |
 | `q` / `Esc` | Quit |
 
@@ -178,11 +184,20 @@ Monitor and control Claude Code sessions from your smartphone.
 
 | Terminal | Focus Support | Notes |
 |----------|--------------|-------|
-| iTerm2 | ✅ Full | TTY-based window/tab targeting |
-| Terminal.app | ✅ Full | TTY-based window/tab targeting |
+| iTerm2 | ✅ Full | TTY-based window/tab targeting via AppleScript |
+| Terminal.app | ✅ Full | TTY-based window/tab targeting via AppleScript |
 | Ghostty | ✅ Full | Title-based window targeting via Window menu |
+| VSCode | ✅ Full | IPC socket via CCM Terminal Bridge extension |
 
 > Other terminals can use monitoring, but focus feature is not supported.
+
+### Focus Feature
+
+The focus feature (`Enter`/`f` key or mobile tap) raises the correct terminal window and tab for a given session. The focus strategy tries terminals in order: **iTerm2 → Terminal.app → Ghostty → VSCode**.
+
+For native terminals (iTerm2, Terminal.app, Ghostty), focus uses AppleScript and requires Accessibility permission (System Preferences > Privacy & Security > Accessibility).
+
+For VSCode, focus uses a Unix socket IPC protocol via the **CCM Terminal Bridge** extension (see below).
 
 ### Ghostty Users
 
@@ -200,6 +215,28 @@ For reliable focus functionality with multiple tabs, `ccm` or `ccm setup` will p
 This prevents Claude Code from overwriting terminal titles, which is necessary for tab identification in Ghostty.
 
 If you skipped this during setup and want to enable it later, add the setting manually or delete `CLAUDE_CODE_MONITOR_GHOSTTY_ASKED` from your settings and run `ccm` again.
+
+### VSCode Extension: CCM Terminal Bridge
+
+To enable focus support for VSCode terminals, install the **CCM Terminal Bridge** extension. It creates a local Unix socket that allows `ccm` to locate and raise the correct VSCode terminal tab.
+
+**Installation:**
+
+```bash
+cd vscode-extension
+npm install && npm run compile
+```
+
+Then in VSCode: **Extensions > ... > Install from VSIX...** and select the generated `.vsix` file.
+
+**How it works:**
+
+1. The extension activates on VSCode startup and creates a Unix socket at `/tmp/ccm-vscode-{pid}.sock`
+2. When `ccm` focuses a session running in VSCode, it discovers the socket and sends a focus request with the TTY path
+3. The extension resolves the TTY to the correct terminal tab using `lsof` and brings it to focus
+4. The response includes the workspace name so `ccm` can raise the correct VSCode window
+
+No configuration is needed — the extension works automatically once installed.
 
 ---
 
