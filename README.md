@@ -3,7 +3,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 
-<<<<<<< HEAD
 **Monitor multiple Claude Code sessions in real-time from your terminal or smartphone.**
 
 ### Terminal UI
@@ -11,12 +10,6 @@ Table view with real-time session monitoring with focus feature which takes you 
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/1d8ace16-006c-4ea9-86f5-36b83e7e70fa" alt="Terminal UI" width="800">
-=======
-**Monitor multiple Claude Code sessions in real-time from your terminal.**
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/onikan27/claude-code-monitor/main/docs/ccm-screenshot.png" alt="Terminal UI" width="800">
->>>>>>> 3041331 (Modification)
 </p>
 
 ---
@@ -48,13 +41,19 @@ Table view with real-time session monitoring with focus feature which takes you 
 ### Install from GitHub
 
 ```bash
-npm install -g github:trojaond/claude-code-monitor
+git clone https://github.com/trojaond/claude-code-monitor.git
+cd claude-code-monitor
+npm install -g .
+```
+
+Then run:
+
+```bash
 ccm
 ```
 
 On first run, it automatically sets up hooks and launches the monitor.
 
-<<<<<<< HEAD
 ### Mobile Access
 
 The mobile web server is off by default. Enable it with `--server`:
@@ -89,8 +88,6 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 
 > **Security**: Tailscale uses WireGuard encryption. Communication is secure even over public networks.
 
-=======
->>>>>>> 3041331 (Modification)
 ---
 
 ## 📖 Usage
@@ -105,7 +102,6 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `ccm list` | `ccm ls` | List sessions |
 | `ccm clear` | - | Clear all sessions |
 
-<<<<<<< HEAD
 ### Options
 
 | Option | Description |
@@ -115,8 +111,6 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `-t, --tailscale` | Prefer Tailscale IP for mobile access |
 | `-p, --port <port>` | Specify port (serve command only) |
 
-=======
->>>>>>> 3041331 (Modification)
 ### Keybindings
 
 | Key | Action |
@@ -127,10 +121,7 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `s` | View tasks for selected session |
 | `m` | Mark/unmark selected session |
 | `1-9` | Quick select & focus |
-<<<<<<< HEAD
 | `h` | Show/Hide QR code (requires `--server`) |
-=======
->>>>>>> 3041331 (Modification)
 | `c` | Clear all sessions |
 | `q` / `Esc` | Quit |
 
