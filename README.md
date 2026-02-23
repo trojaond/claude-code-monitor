@@ -10,14 +10,7 @@
 K9s-style table view with real-time session monitoring
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/onikan27/claude-code-monitor/main/docs/ccm-screenshot.png" alt="Terminal UI" width="800">
-</p>
-
-### Mobile Web
-Control from your phone (same Wi-Fi or Tailscale)
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/onikan27/claude-code-monitor/main/docs/mobile-web-demo.gif" alt="Mobile Web Demo" width="800">
+  <img src="https://github.com/user-attachments/assets/1d8ace16-006c-4ea9-86f5-36b83e7e70fa" alt="Terminal UI" width="800">
 </p>
 
 ---
