@@ -5,8 +5,14 @@ import { MIN_TERMINAL_HEIGHT_FOR_QR } from '../constants.js';
 import { useServer } from '../hooks/useServer.js';
 import { useSessions } from '../hooks/useSessions.js';
 import { clearSessions, readSettings, writeSettings } from '../store/file-store.js';
+import type { Task } from '../types/index.js';
 import { focusSession } from '../utils/focus.js';
-import { SessionCard } from './SessionCard.js';
+import { getTasksFromTranscript } from '../utils/tasks.js';
+import { buildTranscriptPath } from '../utils/transcript.js';
+import { SessionTable } from './SessionTable.js';
+import { TaskDetailView } from './TaskDetailView.js';
+
+type ViewMode = 'list' | 'tasks';
 
 const QUICK_SELECT_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -15,12 +21,28 @@ interface DashboardProps {
   initialShowQr?: boolean;
   /** Prefer Tailscale IP for mobile access */
   preferTailscale?: boolean;
+  /** Enable/disable the mobile web server (default: true) */
+  serverEnabled?: boolean;
 }
 
-export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): React.ReactElement {
+export function Dashboard({
+  initialShowQr,
+  preferTailscale,
+  serverEnabled = true,
+}: DashboardProps): React.ReactElement {
   const { sessions, loading, error } = useSessions();
-  const { url, qrCode, tailscaleIP, loading: serverLoading } = useServer({ preferTailscale });
+  const {
+    url,
+    qrCode,
+    tailscaleIP,
+    loading: serverLoading,
+  } = useServer({ preferTailscale, enabled: serverEnabled });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [markedSessionIds, setMarkedSessionIds] = useState<Set<string>>(new Set());
+  const [now, setNow] = useState(Date.now());
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [taskData, setTaskData] = useState<Task[] | undefined>();
+  const [taskLoading, setTaskLoading] = useState(false);
   const { exit } = useApp();
   const { stdout } = useStdout();
 
@@ -28,24 +50,11 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   const [qrCodeUserPref, setQrCodeUserPref] = useState(
     () => initialShowQr ?? readSettings().qrCodeVisible
   );
-  const [terminalHeight, setTerminalHeight] = useState(stdout?.rows ?? 40);
-
-  // Monitor terminal size changes
-  useEffect(() => {
-    if (!stdout) return;
-
-    const handleResize = () => {
-      setTerminalHeight(stdout.rows ?? 40);
-    };
-
-    // Initial size
-    setTerminalHeight(stdout.rows ?? 40);
-
-    stdout.on('resize', handleResize);
-    return () => {
-      stdout.off('resize', handleResize);
-    };
-  }, [stdout]);
+  // Read terminal height at render time. On actual resize, ccm.tsx triggers
+  // a full clear+rerender which re-mounts this component with fresh values.
+  // No resize listener needed here — avoids spurious re-renders from
+  // keyboard escape sequences that fire fake resize events.
+  const terminalHeight = stdout?.rows ?? 40;
 
   // QR code visibility: user preference AND terminal has enough space
   const canShowQr = terminalHeight >= MIN_TERMINAL_HEIGHT_FOR_QR;
@@ -60,7 +69,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   const focusSessionByIndex = (index: number) => {
     const session = sessions[index];
     if (session?.tty) {
-      focusSession(session.tty);
+      focusSession(session.tty, session.cwd);
     }
   };
 
@@ -71,6 +80,52 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       focusSessionByIndex(index);
     }
   };
+
+  // Tick every second to keep the LAST column live
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Auto-return to list view if selected session disappears
+  useEffect(() => {
+    if (viewMode === 'tasks' && selectedIndex >= sessions.length) {
+      setViewMode('list');
+    }
+  }, [viewMode, selectedIndex, sessions.length]);
+
+  const openTaskView = () => {
+    const session = sessions[selectedIndex];
+    if (!session) return;
+    setTaskLoading(true);
+    setViewMode('tasks');
+    try {
+      const transcriptPath = buildTranscriptPath(session.cwd, session.session_id);
+      setTaskData(getTasksFromTranscript(transcriptPath));
+    } catch {
+      setTaskData(undefined);
+    } finally {
+      setTaskLoading(false);
+    }
+  };
+
+  // Compute task summaries for all sessions (e.g. "2/5")
+  const taskSummaries = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const session of sessions) {
+      try {
+        const path = buildTranscriptPath(session.cwd, session.session_id);
+        const tasks = getTasksFromTranscript(path);
+        if (tasks && tasks.length > 0) {
+          const done = tasks.filter((t) => t.status === 'completed').length;
+          map.set(session.session_id, `${done}/${tasks.length}`);
+        }
+      } catch {
+        // Skip failed transcript reads
+      }
+    }
+    return map;
+  }, [sessions]);
 
   const statusCounts = useMemo(
     () =>
@@ -85,6 +140,15 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   );
 
   useInput((input, key) => {
+    // Tasks detail view: only back navigation
+    if (viewMode === 'tasks') {
+      if (input === 's' || key.escape || input === 'q') {
+        setViewMode('list');
+      }
+      return;
+    }
+
+    // List view
     if (input === 'q' || key.escape) {
       exit();
       return;
@@ -101,6 +165,25 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       focusSessionByIndex(selectedIndex);
       return;
     }
+    if (input === 's') {
+      openTaskView();
+      return;
+    }
+    if (input === 'm') {
+      const session = sessions[selectedIndex];
+      if (session) {
+        setMarkedSessionIds((prev) => {
+          const next = new Set(prev);
+          if (next.has(session.session_id)) {
+            next.delete(session.session_id);
+          } else {
+            next.add(session.session_id);
+          }
+          return next;
+        });
+      }
+      return;
+    }
     if (QUICK_SELECT_KEYS.includes(input)) {
       handleQuickSelect(input);
       return;
@@ -110,7 +193,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       setSelectedIndex(0);
       return;
     }
-    if (input === 'h') {
+    if (input === 'h' && serverEnabled) {
       toggleQrCode();
       return;
     }
@@ -125,6 +208,14 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
   }
 
   const { running, waiting_input: waitingInput, stopped } = statusCounts;
+
+  if (viewMode === 'tasks') {
+    const session = sessions[selectedIndex];
+    if (session) {
+      return <TaskDetailView session={session} tasks={taskData} loading={taskLoading} />;
+    }
+    // Session gone, fall through to list
+  }
 
   return (
     <Box flexDirection="column">
@@ -150,14 +241,13 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
               <Text dimColor>No active sessions</Text>
             </Box>
           ) : (
-            sessions.map((session, index) => (
-              <SessionCard
-                key={`${session.session_id}:${session.tty || ''}`}
-                session={session}
-                index={index}
-                isSelected={index === selectedIndex}
-              />
-            ))
+            <SessionTable
+              sessions={sessions}
+              selectedIndex={selectedIndex}
+              taskSummaries={taskSummaries}
+              markedSessionIds={markedSessionIds}
+              now={now}
+            />
           )}
         </Box>
       </Box>
@@ -166,14 +256,16 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       <Box marginTop={1} justifyContent="center" gap={1}>
         <Text dimColor>[↑↓]Select</Text>
         <Text dimColor>[Enter]Focus</Text>
+        <Text dimColor>[s]Tasks</Text>
+        <Text dimColor>[m]Mark</Text>
         <Text dimColor>[1-9]Quick</Text>
         <Text dimColor>[c]Clear</Text>
-        <Text dimColor>[h]{qrCodeUserPref ? 'Hide' : 'Show'}URL</Text>
+        {serverEnabled && <Text dimColor>[h]{qrCodeUserPref ? 'Hide' : 'Show'}URL</Text>}
         <Text dimColor>[q]Quit</Text>
       </Box>
 
       {/* Web UI hint - shown when URL is hidden */}
-      {!serverLoading && url && !qrCodeUserPref && (
+      {serverEnabled && !serverLoading && url && !qrCodeUserPref && (
         <Box marginTop={1} borderStyle="round" borderColor="gray" paddingX={1}>
           <Text color="white">
             📱 Web UI available. Press [h] to show QR code for mobile access. (Same Wi-Fi required)
@@ -182,7 +274,7 @@ export function Dashboard({ initialShowQr, preferTailscale }: DashboardProps): R
       )}
 
       {/* Web UI - only shown when qrCodeUserPref is true (security: URL contains token) */}
-      {!serverLoading && url && qrCodeUserPref && (
+      {serverEnabled && !serverLoading && url && qrCodeUserPref && (
         <Box marginTop={1} paddingX={1}>
           {qrCodeVisible && qrCode && (
             <Box flexShrink={0}>

@@ -1,6 +1,7 @@
 import { accessSync, constants, writeFileSync } from 'node:fs';
 import { executeAppleScript } from './applescript.js';
 import { executeWithTerminalFallback } from './terminal-strategy.js';
+import { findVSCodeSockets, sendFocusRequest } from './vscode-ipc.js';
 
 /**
  * Sanitize a string for safe use in AppleScript.
@@ -77,6 +78,7 @@ export function setTtyTitle(tty: string, title: string): boolean {
 function buildITerm2Script(tty: string): string {
   const safeTty = sanitizeForAppleScript(tty);
   return `
+if application "iTerm" is not running then return false
 tell application "iTerm2"
   repeat with aWindow in windows
     repeat with aTab in tabs of aWindow
@@ -99,6 +101,7 @@ end tell
 function buildTerminalAppScript(tty: string): string {
   const safeTty = sanitizeForAppleScript(tty);
   return `
+if application "Terminal" is not running then return false
 tell application "Terminal"
   repeat with aWindow in windows
     repeat with aTab in tabs of aWindow
@@ -117,6 +120,7 @@ end tell
 
 function buildGhosttyScript(): string {
   return `
+if application "Ghostty" is not running then return false
 tell application "Ghostty"
   activate
 end tell
@@ -127,6 +131,7 @@ return true
 function buildGhosttyFocusByTitleScript(titleTag: string): string {
   const safeTag = sanitizeForAppleScript(titleTag);
   return `
+if application "Ghostty" is not running then return false
 -- Activate Ghostty first (required when called from Web UI with Ghostty in background)
 tell application "Ghostty" to activate
 delay 0.1
@@ -187,17 +192,53 @@ function focusGhostty(tty: string): boolean {
     setTtyTitle(tty, '');
   }
 
-  if (success) return true;
+  return success;
+}
 
-  // Fallback: activate Ghostty without specific window focus
-  return executeAppleScript(buildGhosttyScript());
+function raiseVSCodeWindow(workspaceName: string): boolean {
+  const safeName = sanitizeForAppleScript(workspaceName);
+  return executeAppleScript(`
+tell application "System Events"
+  if not (exists process "Code") then return false
+  tell process "Code"
+    repeat with w in windows
+      if name of w contains "${safeName}" then
+        perform action "AXRaise" of w
+        tell application "Visual Studio Code" to activate
+        return true
+      end if
+    end repeat
+  end tell
+end tell
+return false
+`);
+}
+
+function focusVSCode(tty: string, cwd?: string): boolean {
+  // Try IPC socket first (can select specific terminal tab)
+  const sockets = findVSCodeSockets();
+  for (const socketPath of sockets) {
+    const response = sendFocusRequest(socketPath, tty);
+    if (response?.success) {
+      // Raise the specific VSCode window by matching the workspace name in the title
+      const workspaceName = cwd?.split('/').pop();
+      if (workspaceName && raiseVSCodeWindow(workspaceName)) {
+        return true;
+      }
+      // Fallback: just activate VSCode (raises last-focused window)
+      executeAppleScript('tell application "Visual Studio Code" to activate');
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export function isMacOS(): boolean {
   return process.platform === 'darwin';
 }
 
-export function focusSession(tty: string): boolean {
+export function focusSession(tty: string, cwd?: string): boolean {
   if (!isMacOS()) return false;
   if (!isValidTtyPath(tty)) return false;
 
@@ -205,9 +246,10 @@ export function focusSession(tty: string): boolean {
     iTerm2: () => focusITerm2(tty),
     terminalApp: () => focusTerminalApp(tty),
     ghostty: () => focusGhostty(tty),
+    vscode: () => focusVSCode(tty, cwd),
   });
 }
 
 export function getSupportedTerminals(): string[] {
-  return ['iTerm2', 'Terminal.app', 'Ghostty'];
+  return ['iTerm2', 'Terminal.app', 'Ghostty', 'VSCode'];
 }

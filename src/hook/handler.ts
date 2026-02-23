@@ -1,7 +1,12 @@
 import { flushPendingWrites, updateSession } from '../store/file-store.js';
 import type { HookEvent, HookEventName } from '../types/index.js';
 import { readJsonFromStdin } from '../utils/stdin.js';
-import { buildTranscriptPath } from '../utils/transcript.js';
+import { detectTerminalApp } from '../utils/terminal-detect.js';
+import {
+  buildTranscriptPath,
+  getCostFromTranscript,
+  getModelFromTranscript,
+} from '../utils/transcript.js';
 
 // Allowed hook event names (whitelist)
 /** @internal */
@@ -62,6 +67,11 @@ export async function handleHookEvent(eventName: string, tty?: string): Promise<
       ? rawInput.transcript_path
       : buildTranscriptPath(cwd, rawInput.session_id);
 
+  // Detect terminal app, model, and cost
+  const terminal = detectTerminalApp(tty);
+  const model = transcriptPath ? getModelFromTranscript(transcriptPath) : undefined;
+  const costUSD = transcriptPath ? getCostFromTranscript(transcriptPath) : undefined;
+
   const event: HookEvent = {
     session_id: rawInput.session_id,
     cwd,
@@ -69,6 +79,9 @@ export async function handleHookEvent(eventName: string, tty?: string): Promise<
     hook_event_name: eventName,
     notification_type: rawInput.notification_type as string | undefined,
     transcript_path: transcriptPath,
+    terminal,
+    model,
+    costUSD,
   };
 
   updateSession(event);

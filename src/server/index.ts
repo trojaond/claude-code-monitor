@@ -122,7 +122,7 @@ function handleFocusCommand(ws: WebSocket, sessionId: string): void {
     );
     return;
   }
-  const success = focusSession(session.tty);
+  const success = focusSession(session.tty, session.cwd);
   ws.send(JSON.stringify({ type: 'focusResult', success }));
 }
 
@@ -209,7 +209,7 @@ async function handleCaptureScreenCommand(ws: WebSocket, sessionId: string): Pro
 
   try {
     // Focus the terminal window first to ensure it's visible
-    focusSession(session.tty);
+    focusSession(session.tty, session.cwd);
 
     // Wait a bit for the window to come to front
     await new Promise((resolve) => setTimeout(resolve, 100));

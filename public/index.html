@@ -269,8 +269,22 @@
     .card-path {
       font-size: 13px;
       color: var(--text-muted);
-      margin-bottom: 14px;
+      margin-bottom: 6px;
       word-break: break-all;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
+    .card-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
     }
 
     /* Message Preview */
@@ -1339,6 +1353,16 @@
       return path.replace(/^\/Users\/[^/]+/, '~');
     }
 
+    function formatModelShort(model) {
+      if (!model) return '';
+      return model.replace(/^claude-/, '');
+    }
+
+    function formatCost(cost) {
+      if (cost === undefined || cost === null) return '';
+      return '$' + cost.toFixed(2);
+    }
+
     function truncateMessage(text, maxLen = 100) {
       if (!text) return '';
       const clean = text.replace(/[#*`_~\[\]]/g, '').replace(/\s+/g, ' ').trim();
@@ -1802,6 +1826,18 @@
         const statusLabel = escapeHtml(STATUS[session.status]);
         const msgPreview = escapeHtml(truncateMessage(session.lastMessage));
         const safeStatus = escapeHtml(session.status);
+        const modelShort = escapeHtml(formatModelShort(session.model));
+        const cost = escapeHtml(formatCost(session.costUSD));
+        const terminal = escapeHtml(session.terminal || '');
+
+        // Build metadata items
+        const metaItems = [];
+        if (terminal) metaItems.push(`<span class="card-meta-item">${terminal}</span>`);
+        if (modelShort) metaItems.push(`<span class="card-meta-item">${modelShort}</span>`);
+        if (cost) metaItems.push(`<span class="card-meta-item">${cost}</span>`);
+        const metaHtml = metaItems.length > 0
+          ? `<div class="card-meta">${metaItems.join('')}</div>`
+          : '';
 
         return `
           <div class="card ${safeStatus}" data-session-id="${escapeHtml(session.session_id)}">
@@ -1813,6 +1849,7 @@
             <div class="card-body">
               <div class="card-name">${dirName}</div>
               <div class="card-path">${shortPath}</div>
+              ${metaHtml}
               <div class="card-message">
                 ${msgPreview
                   ? `<div class="card-message-text">${msgPreview}</div>`

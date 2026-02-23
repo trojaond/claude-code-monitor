@@ -178,6 +178,9 @@ export function updateSession(event: HookEvent): Session {
     created_at: existing?.created_at ?? now,
     updated_at: now,
     lastMessage,
+    terminal: event.terminal ?? existing?.terminal,
+    model: event.model ?? existing?.model,
+    costUSD: event.costUSD ?? existing?.costUSD,
   };
 
   store.sessions[key] = session;
@@ -189,12 +192,27 @@ export function updateSession(event: HookEvent): Session {
 export function getSessions(): Session[] {
   const store = readStore();
 
+  // Filter out dead-TTY sessions from the result without writing to disk.
+  // Cleanup is handled separately by cleanupDeadSessions() to avoid
+  // triggering chokidar → loadSessions → getSessions write loops.
+  const liveSessions = Object.values(store.sessions).filter((session) => isTtyAlive(session.tty));
+
+  return liveSessions.sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+}
+
+/**
+ * Remove sessions whose TTY no longer exists from the store.
+ * Call this on a timer rather than inside getSessions() to avoid
+ * write → chokidar → read → write loops.
+ */
+export function cleanupDeadSessions(): void {
+  const store = readStore();
+
   let hasChanges = false;
   for (const [key, session] of Object.entries(store.sessions)) {
-    const isTtyStillAlive = isTtyAlive(session.tty);
-
-    // Only remove sessions when TTY no longer exists
-    if (!isTtyStillAlive) {
+    if (!isTtyAlive(session.tty)) {
       delete store.sessions[key];
       hasChanges = true;
     }
@@ -203,10 +221,6 @@ export function getSessions(): Session[] {
   if (hasChanges) {
     writeStore(store);
   }
-
-  return Object.values(store.sessions).sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
 }
 
 export function getSession(sessionId: string, tty?: string): Session | undefined {

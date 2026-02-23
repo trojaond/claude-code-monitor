@@ -15,6 +15,12 @@ export type {
   StoreData,
 } from './types/index.js';
 export { focusSession, getSupportedTerminals, isMacOS } from './utils/focus.js';
-export { sendTextToTerminal } from './utils/send-text.js';
+export {
+  ALLOWED_KEYS,
+  ARROW_KEY_CODES,
+  ENTER_KEY_CODE,
+  sendKeystrokeToTerminal,
+  sendTextToTerminal,
+} from './utils/send-text.js';
 // Utilities
 export { getStatusDisplay } from './utils/status.js';

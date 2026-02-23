@@ -14,6 +14,9 @@ export interface HookEvent {
   hook_event_name: HookEventName;
   notification_type?: string;
   transcript_path?: string;
+  terminal?: string;
+  model?: string;
+  costUSD?: number;
 }
 
 // Session status
@@ -28,6 +31,19 @@ export interface Session {
   created_at: string;
   updated_at: string;
   lastMessage?: string;
+  terminal?: string; // e.g., "iTerm2", "VSCode", "Terminal.app", "Ghostty"
+  model?: string; // e.g., "claude-opus-4-6"
+  costUSD?: number; // e.g., 0.42
+}
+
+// Task status (from TodoWrite / TaskCreate / TaskUpdate)
+export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+
+export interface Task {
+  id: string;
+  subject: string;
+  description?: string;
+  status: TaskStatus;
 }
 
 // File store data structure
