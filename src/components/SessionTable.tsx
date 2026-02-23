@@ -174,10 +174,7 @@ export const SessionTable = memo(function SessionTable({
               </Text>
             </Box>
             <Box width={COL_TERMINAL}>
-              <Text
-                color={terminal ? getTerminalColor(terminal) : undefined}
-                backgroundColor={bg}
-              >
+              <Text color={terminal ? getTerminalColor(terminal) : undefined} backgroundColor={bg}>
                 {truncate(terminal, COL_TERMINAL)}
               </Text>
             </Box>

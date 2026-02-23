@@ -55,14 +55,24 @@ describe('getContextUsageFromTranscript', () => {
         type: 'assistant',
         message: {
           model: 'claude-opus-4-6',
-          usage: { input_tokens: 10000, output_tokens: 500, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+          usage: {
+            input_tokens: 10000,
+            output_tokens: 500,
+            cache_read_input_tokens: 0,
+            cache_creation_input_tokens: 0,
+          },
         },
       },
       {
         type: 'assistant',
         message: {
           model: 'claude-opus-4-6',
-          usage: { input_tokens: 40000, output_tokens: 2000, cache_read_input_tokens: 60000, cache_creation_input_tokens: 0 },
+          usage: {
+            input_tokens: 40000,
+            output_tokens: 2000,
+            cache_read_input_tokens: 60000,
+            cache_creation_input_tokens: 0,
+          },
         },
       },
     ]);
@@ -76,7 +86,12 @@ describe('getContextUsageFromTranscript', () => {
         type: 'assistant',
         message: {
           model: 'claude-opus-4-6',
-          usage: { input_tokens: 180000, output_tokens: 5000, cache_read_input_tokens: 50000, cache_creation_input_tokens: 0 },
+          usage: {
+            input_tokens: 180000,
+            output_tokens: 5000,
+            cache_read_input_tokens: 50000,
+            cache_creation_input_tokens: 0,
+          },
         },
       },
     ]);
