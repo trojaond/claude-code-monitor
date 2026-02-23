@@ -53,11 +53,27 @@ function formatLastChange(timestamp: string, now: number): string {
   return `${seconds}s`;
 }
 
+function getContextBarColor(percent: number): string {
+  if (percent >= 80) return 'red';
+  if (percent >= 50) return 'yellow';
+  return 'green';
+}
+
+function renderContextBar(percent: number): string {
+  const BAR_WIDTH = 8;
+  const filled = Math.round((percent / 100) * BAR_WIDTH);
+  const empty = BAR_WIDTH - filled;
+  const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(empty);
+  const pct = `${percent}%`.padStart(4);
+  return `${bar}${pct}`;
+}
+
 // Column widths
 const COL_STATUS = 12;
 const COL_TERMINAL = 13;
 const COL_MODEL = 12;
 const COL_COST = 7;
+const COL_CTX = 16;
 const COL_TASKS = 6;
 const COL_LAST = 6;
 const COL_AGE = 6;
@@ -101,6 +117,11 @@ export const SessionTable = memo(function SessionTable({
         <Box width={COL_COST}>
           <Text bold dimColor>
             COST
+          </Text>
+        </Box>
+        <Box width={COL_CTX}>
+          <Text bold dimColor>
+            CTX USAGE
           </Text>
         </Box>
         <Box width={COL_TASKS}>
@@ -169,6 +190,17 @@ export const SessionTable = memo(function SessionTable({
               <Text color={cost ? 'yellow' : undefined} backgroundColor={bg}>
                 {cost}
               </Text>
+            </Box>
+            <Box width={COL_CTX}>
+              {session.contextPercent !== undefined ? (
+                <Text color={getContextBarColor(session.contextPercent)} backgroundColor={bg}>
+                  {renderContextBar(session.contextPercent)}
+                </Text>
+              ) : (
+                <Text dimColor backgroundColor={bg}>
+                  {'\u2014'}
+                </Text>
+              )}
             </Box>
             <Box width={COL_TASKS}>
               <Text color={tasks ? 'cyan' : undefined} backgroundColor={bg}>
