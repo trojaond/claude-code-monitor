@@ -1,9 +1,9 @@
 # Claude Code Monitor
 
-[![npm version](https://img.shields.io/npm/v/claude-code-monitor.svg)](https://www.npmjs.com/package/claude-code-monitor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 
+<<<<<<< HEAD
 **Monitor multiple Claude Code sessions in real-time from your terminal or smartphone.**
 
 ### Terminal UI
@@ -11,23 +11,25 @@ Table view with real-time session monitoring with focus feature which takes you 
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/1d8ace16-006c-4ea9-86f5-36b83e7e70fa" alt="Terminal UI" width="800">
+=======
+**Monitor multiple Claude Code sessions in real-time from your terminal.**
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/onikan27/claude-code-monitor/main/docs/ccm-screenshot.png" alt="Terminal UI" width="800">
+>>>>>>> 3041331 (Modification)
 </p>
 
 ---
 
 ## ✨ Features
 
-| Terminal (TUI) | Mobile Web |
-|----------------|------------|
-| K9s-style columnar table view | Monitor from your smartphone |
-| Quick tab focus with keyboard | Remote terminal focus |
-| Vim-style navigation | Send messages to terminal |
-| Task detail view per session | Permission prompt navigation |
-| | Screen capture with pinch zoom |
-
+- 📊 **Columnar table view** with real-time session monitoring
+- ⌨️ **Quick tab focus** with keyboard shortcuts
+- 🧭 **Vim-style navigation** (j/k, Enter, 1-9)
+- 📋 **Task detail view** per session
 - 🔌 **Serverless** - File-based state management, no API server required
 - ⚡ **Easy Setup** - One command `ccm` for automatic setup and launch
-- 🔒 **Secure** - No external data transmission, token-based mobile auth
+- 🔒 **Secure** - No external data transmission
 
 ---
 
@@ -43,21 +45,16 @@ Table view with real-time session monitoring with focus feature which takes you 
 
 ## 🚀 Quick Start
 
-### Run with npx (no install required)
+### Install from GitHub
 
 ```bash
-npx claude-code-monitor
-```
-
-### Or install globally
-
-```bash
-npm install -g claude-code-monitor
+npm install -g github:trojaond/claude-code-monitor
 ccm
 ```
 
 On first run, it automatically sets up hooks and launches the monitor.
 
+<<<<<<< HEAD
 ### Mobile Access
 
 The mobile web server is off by default. Enable it with `--server`:
@@ -92,6 +89,8 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 
 > **Security**: Tailscale uses WireGuard encryption. Communication is secure even over public networks.
 
+=======
+>>>>>>> 3041331 (Modification)
 ---
 
 ## 📖 Usage
@@ -102,11 +101,11 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 |---------|-------|-------------|
 | `ccm` | - | Launch monitor (auto-setup if needed) |
 | `ccm watch` | `ccm w` | Launch monitor |
-| `ccm serve` | `ccm s` | Start mobile web server only |
 | `ccm setup` | - | Configure Claude Code hooks |
 | `ccm list` | `ccm ls` | List sessions |
 | `ccm clear` | - | Clear all sessions |
 
+<<<<<<< HEAD
 ### Options
 
 | Option | Description |
@@ -116,6 +115,8 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `-t, --tailscale` | Prefer Tailscale IP for mobile access |
 | `-p, --port <port>` | Specify port (serve command only) |
 
+=======
+>>>>>>> 3041331 (Modification)
 ### Keybindings
 
 | Key | Action |
@@ -126,7 +127,10 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `s` | View tasks for selected session |
 | `m` | Mark/unmark selected session |
 | `1-9` | Quick select & focus |
+<<<<<<< HEAD
 | `h` | Show/Hide QR code (requires `--server`) |
+=======
+>>>>>>> 3041331 (Modification)
 | `c` | Clear all sessions |
 | `q` / `Esc` | Quit |
 
@@ -137,39 +141,6 @@ With `-t` option, the QR code URL uses your Tailscale IP (100.x.x.x), allowing a
 | `●` | Running | Claude Code is processing |
 | `◐` | Waiting | Waiting for user input |
 | `✓` | Done | Session ended |
-
----
-
-## 📱 Mobile Web Interface
-
-Monitor and control Claude Code sessions from your smartphone.
-
-### Features
-
-- Real-time session status via WebSocket
-- View latest Claude messages
-- Focus terminal sessions remotely
-- Send text messages to terminal (multi-line supported)
-- **Permission prompt navigation** - Respond to permission dialogs remotely
-  - Direction pad for arrow keys (up/down/left/right) and Enter
-  - Screen capture to view terminal state
-  - Pinch zoom (1x-5x) for captured screenshots
-- Swipe-to-close gesture on modal
-- Warning display for dangerous commands
-
-### Security
-
-> **Important**: Your smartphone and Mac must be on the **same Wi-Fi network** (or use Tailscale with `-t` option for remote access).
-
-- **Token Authentication** - A unique token is generated for authentication
-- **Local Network Only** - Not accessible from the internet
-- **Do not share the URL** - Treat it like a password
-
-**Recommended networks:**
-- Home Wi-Fi
-- Office/Work Wi-Fi
-
-> **Warning**: Avoid using on public Wi-Fi networks (cafes, airports, etc.). Other users on the same network could potentially access your monitor.
 
 ---
 
@@ -257,28 +228,9 @@ ccm clear
 
 ## 🔒 Security
 
-> **Warning**: Without Tailscale, this tool is designed for use on **trusted private networks only**.
->
-> **Never use on public Wi-Fi** (cafes, airports, hotels, co-working spaces, etc.) without Tailscale.
-> Other users on the same network could potentially intercept the authentication token
-> and gain control of your terminal sessions, including the ability to execute arbitrary commands.
-
 - **No data sent to external servers** - All data stays on your machine
 - Hook registration modifies `~/.claude/settings.json`
 - Focus feature uses AppleScript for terminal control
-- Mobile Web uses token authentication on local network only
-- Server-side validation blocks dangerous shell commands
-
-### Secure Remote Access
-
-For secure access from outside your local network, use the `-t` (Tailscale) option:
-
-| Mode | Network | Security |
-|------|---------|----------|
-| Default | Same Wi-Fi only | Home/Office Wi-Fi recommended |
-| `-t` (Tailscale) | Anywhere in Tailnet | WireGuard encrypted, safe on any network |
-
-With Tailscale, communication is encrypted end-to-end, making it safe to use even on public Wi-Fi (cafes, airports, etc.).
 
 ---
 
