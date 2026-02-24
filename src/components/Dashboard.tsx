@@ -9,10 +9,11 @@ import type { Task } from '../types/index.js';
 import { focusSession } from '../utils/focus.js';
 import { getTasksFromTranscript } from '../utils/tasks.js';
 import { buildTranscriptPath } from '../utils/transcript.js';
+import { DiffView } from './DiffView.js';
 import { SessionTable } from './SessionTable.js';
 import { TaskDetailView } from './TaskDetailView.js';
 
-type ViewMode = 'list' | 'tasks';
+type ViewMode = 'list' | 'tasks' | 'diff';
 
 const QUICK_SELECT_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -148,6 +149,10 @@ export function Dashboard({
       return;
     }
 
+    if (viewMode === 'diff') {
+      return; // DiffView handles its own input
+    }
+
     // List view
     if (input === 'q' || key.escape) {
       exit();
@@ -167,6 +172,12 @@ export function Dashboard({
     }
     if (input === 's') {
       openTaskView();
+      return;
+    }
+    if (input === 'd') {
+      if (sessions[selectedIndex]) {
+        setViewMode('diff');
+      }
       return;
     }
     if (input === 'm') {
@@ -217,6 +228,14 @@ export function Dashboard({
     // Session gone, fall through to list
   }
 
+  if (viewMode === 'diff') {
+    const session = sessions[selectedIndex];
+    if (session) {
+      return <DiffView session={session} onExit={() => setViewMode('list')} />;
+    }
+    // Session gone, fall through to list
+  }
+
   return (
     <Box flexDirection="column">
       {/* Main Panel: Header + Sessions */}
@@ -257,6 +276,7 @@ export function Dashboard({
         <Text dimColor>[↑↓]Select</Text>
         <Text dimColor>[Enter]Focus</Text>
         <Text dimColor>[s]Tasks</Text>
+        <Text dimColor>[d]Diff</Text>
         <Text dimColor>[m]Mark</Text>
         <Text dimColor>[1-9]Quick</Text>
         <Text dimColor>[c]Clear</Text>
