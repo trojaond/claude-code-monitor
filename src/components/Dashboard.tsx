@@ -90,7 +90,7 @@ export function Dashboard({
 
   // Auto-return to list view if selected session disappears
   useEffect(() => {
-    if (viewMode === 'tasks' && selectedIndex >= sessions.length) {
+    if ((viewMode === 'tasks' || viewMode === 'diff') && selectedIndex >= sessions.length) {
       setViewMode('list');
     }
   }, [viewMode, selectedIndex, sessions.length]);
