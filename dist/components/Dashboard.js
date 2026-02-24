@@ -8,6 +8,7 @@ import { clearSessions, readSettings, writeSettings } from '../store/file-store.
 import { focusSession } from '../utils/focus.js';
 import { getTasksFromTranscript } from '../utils/tasks.js';
 import { buildTranscriptPath } from '../utils/transcript.js';
+import { DiffView } from './DiffView.js';
 import { SessionTable } from './SessionTable.js';
 import { TaskDetailView } from './TaskDetailView.js';
 const QUICK_SELECT_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -57,7 +58,7 @@ export function Dashboard({ initialShowQr, preferTailscale, serverEnabled = fals
     }, []);
     // Auto-return to list view if selected session disappears
     useEffect(() => {
-        if (viewMode === 'tasks' && selectedIndex >= sessions.length) {
+        if ((viewMode === 'tasks' || viewMode === 'diff') && selectedIndex >= sessions.length) {
             setViewMode('list');
         }
     }, [viewMode, selectedIndex, sessions.length]);
@@ -108,6 +109,9 @@ export function Dashboard({ initialShowQr, preferTailscale, serverEnabled = fals
             }
             return;
         }
+        if (viewMode === 'diff') {
+            return; // DiffView handles its own input
+        }
         // List view
         if (input === 'q' || key.escape) {
             exit();
@@ -127,6 +131,12 @@ export function Dashboard({ initialShowQr, preferTailscale, serverEnabled = fals
         }
         if (input === 's') {
             openTaskView();
+            return;
+        }
+        if (input === 'd') {
+            if (sessions[selectedIndex]) {
+                setViewMode('diff');
+            }
             return;
         }
         if (input === 'm') {
@@ -173,5 +183,12 @@ export function Dashboard({ initialShowQr, preferTailscale, serverEnabled = fals
         }
         // Session gone, fall through to list
     }
-    return (_jsxs(Box, { flexDirection: "column", children: [_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: "cyan", paddingX: 1, children: [_jsxs(Box, { children: [_jsx(Text, { bold: true, color: "cyan", children: "Claude Code Navigator" }), _jsx(Text, { dimColor: true, children: " " }), _jsxs(Text, { color: "gray", children: ["\u25CF ", running] }), _jsx(Text, { dimColor: true, children: " " }), _jsxs(Text, { color: "yellow", children: ["\u25D0 ", waitingInput] }), _jsx(Text, { dimColor: true, children: " " }), _jsxs(Text, { color: "green", children: ["\u2713 ", stopped] })] }), _jsx(Box, { flexDirection: "column", marginTop: 1, children: sessions.length === 0 ? (_jsx(Box, { children: _jsx(Text, { dimColor: true, children: "No active sessions" }) })) : (_jsx(SessionTable, { sessions: sessions, selectedIndex: selectedIndex, taskSummaries: taskSummaries, markedSessionIds: markedSessionIds, now: now })) })] }), _jsxs(Box, { marginTop: 1, justifyContent: "center", gap: 1, children: [_jsx(Text, { dimColor: true, children: "[\u2191\u2193]Select" }), _jsx(Text, { dimColor: true, children: "[Enter]Focus" }), _jsx(Text, { dimColor: true, children: "[s]Tasks" }), _jsx(Text, { dimColor: true, children: "[m]Mark" }), _jsx(Text, { dimColor: true, children: "[1-9]Quick" }), _jsx(Text, { dimColor: true, children: "[c]Clear" }), serverEnabled && _jsxs(Text, { dimColor: true, children: ["[h]", qrCodeUserPref ? 'Hide' : 'Show', "URL"] }), _jsx(Text, { dimColor: true, children: "[q]Quit" })] }), serverEnabled && !serverLoading && url && !qrCodeUserPref && (_jsx(Box, { marginTop: 1, borderStyle: "round", borderColor: "gray", paddingX: 1, children: _jsx(Text, { color: "white", children: "\uD83D\uDCF1 Web UI available. Press [h] to show QR code for mobile access. (Same Wi-Fi required)" }) })), serverEnabled && !serverLoading && url && qrCodeUserPref && (_jsxs(Box, { marginTop: 1, paddingX: 1, children: [qrCodeVisible && qrCode && (_jsx(Box, { flexShrink: 0, children: _jsx(Text, { children: qrCode }) })), _jsxs(Box, { flexDirection: "column", marginLeft: qrCodeVisible && qrCode ? 2 : 0, justifyContent: "center", children: [_jsx(Text, { bold: true, color: "magenta", children: "Web UI" }), _jsx(Text, { dimColor: true, children: url }), _jsx(Text, { dimColor: true, children: "Scan QR code to monitor sessions from your phone." }), _jsx(Text, { dimColor: true, children: "Tap a session to focus its terminal on this Mac." }), tailscaleIP && (_jsx(Text, { color: "green", children: "Tailscale: accessible from anywhere in your Tailnet" })), _jsx(Text, { color: "yellow", children: "Do not share this URL with others." }), !canShowQr && _jsx(Text, { color: "yellow", children: "Resize window to show QR code" })] })] }))] }));
+    if (viewMode === 'diff') {
+        const session = sessions[selectedIndex];
+        if (session) {
+            return _jsx(DiffView, { session: session, onExit: () => setViewMode('list') });
+        }
+        // Session gone, fall through to list
+    }
+    return (_jsxs(Box, { flexDirection: "column", children: [_jsxs(Box, { flexDirection: "column", borderStyle: "round", borderColor: "cyan", paddingX: 1, children: [_jsxs(Box, { children: [_jsx(Text, { bold: true, color: "cyan", children: "Claude Code Navigator" }), _jsx(Text, { dimColor: true, children: " " }), _jsxs(Text, { color: "gray", children: ["\u25CF ", running] }), _jsx(Text, { dimColor: true, children: " " }), _jsxs(Text, { color: "yellow", children: ["\u25D0 ", waitingInput] }), _jsx(Text, { dimColor: true, children: " " }), _jsxs(Text, { color: "green", children: ["\u2713 ", stopped] })] }), _jsx(Box, { flexDirection: "column", marginTop: 1, children: sessions.length === 0 ? (_jsx(Box, { children: _jsx(Text, { dimColor: true, children: "No active sessions" }) })) : (_jsx(SessionTable, { sessions: sessions, selectedIndex: selectedIndex, taskSummaries: taskSummaries, markedSessionIds: markedSessionIds, now: now })) })] }), _jsxs(Box, { marginTop: 1, justifyContent: "center", gap: 1, children: [_jsx(Text, { dimColor: true, children: "[\u2191\u2193]Select" }), _jsx(Text, { dimColor: true, children: "[Enter]Focus" }), _jsx(Text, { dimColor: true, children: "[s]Tasks" }), _jsx(Text, { dimColor: true, children: "[d]Diff" }), _jsx(Text, { dimColor: true, children: "[m]Mark" }), _jsx(Text, { dimColor: true, children: "[1-9]Quick" }), _jsx(Text, { dimColor: true, children: "[c]Clear" }), serverEnabled && _jsxs(Text, { dimColor: true, children: ["[h]", qrCodeUserPref ? 'Hide' : 'Show', "URL"] }), _jsx(Text, { dimColor: true, children: "[q]Quit" })] }), serverEnabled && !serverLoading && url && !qrCodeUserPref && (_jsx(Box, { marginTop: 1, borderStyle: "round", borderColor: "gray", paddingX: 1, children: _jsx(Text, { color: "white", children: "\uD83D\uDCF1 Web UI available. Press [h] to show QR code for mobile access. (Same Wi-Fi required)" }) })), serverEnabled && !serverLoading && url && qrCodeUserPref && (_jsxs(Box, { marginTop: 1, paddingX: 1, children: [qrCodeVisible && qrCode && (_jsx(Box, { flexShrink: 0, children: _jsx(Text, { children: qrCode }) })), _jsxs(Box, { flexDirection: "column", marginLeft: qrCodeVisible && qrCode ? 2 : 0, justifyContent: "center", children: [_jsx(Text, { bold: true, color: "magenta", children: "Web UI" }), _jsx(Text, { dimColor: true, children: url }), _jsx(Text, { dimColor: true, children: "Scan QR code to monitor sessions from your phone." }), _jsx(Text, { dimColor: true, children: "Tap a session to focus its terminal on this Mac." }), tailscaleIP && (_jsx(Text, { color: "green", children: "Tailscale: accessible from anywhere in your Tailnet" })), _jsx(Text, { color: "yellow", children: "Do not share this URL with others." }), !canShowQr && _jsx(Text, { color: "yellow", children: "Resize window to show QR code" })] })] }))] }));
 }

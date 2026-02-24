@@ -123,12 +123,12 @@ export function DiffView({ session, onExit }: DiffViewProps): React.ReactElement
       onExit();
       return;
     }
-    if (input === 'k') {
-      setSelectedFileIndex((prev) => Math.max(0, prev - 1));
+    if (input === 'k' || key.leftArrow) {
+      setSelectedFileIndex((prev) => (prev <= 0 ? files.length - 1 : prev - 1));
       return;
     }
-    if (input === 'j') {
-      setSelectedFileIndex((prev) => Math.min(files.length - 1, prev + 1));
+    if (input === 'j' || key.rightArrow) {
+      setSelectedFileIndex((prev) => (prev >= files.length - 1 ? 0 : prev + 1));
       return;
     }
     if (input === 'w' || key.upArrow) {
@@ -227,8 +227,8 @@ export function DiffView({ session, onExit }: DiffViewProps): React.ReactElement
           {maxOffset > 0 && <Text dimColor>{scrollPercent}%</Text>}
         </Box>
         <Box gap={1}>
-          <Text dimColor>[j/k]Files</Text>
-          <Text dimColor>[w/s]Scroll</Text>
+          <Text dimColor>[j/k/←→]Files</Text>
+          <Text dimColor>[w/s/↑↓]Scroll</Text>
           <Text dimColor>[e]VSCode</Text>
           <Text dimColor>[d/q]Back</Text>
         </Box>
