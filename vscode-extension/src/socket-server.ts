@@ -126,7 +126,7 @@ async function handleRequest(jsonStr: string, connection: net.Socket): Promise<v
 
 function respond(connection: net.Socket, response: FocusResponse): void {
   try {
-    connection.end(JSON.stringify(response) + '\n');
+    connection.end(`${JSON.stringify(response)}\n`);
   } catch {
     // Connection already closed
   }

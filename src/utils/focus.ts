@@ -136,7 +136,7 @@ end tell
 `;
 }
 
-function buildGhosttyScript(): string {
+function _buildGhosttyScript(): string {
   return `
 if application "Ghostty" is not running then return false
 tell application "Ghostty"
