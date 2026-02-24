@@ -58,21 +58,21 @@ function getDiffLines(cwd, filePath) {
 }
 function DiffLine({ line }) {
     if (line.startsWith('+') && !line.startsWith('+++')) {
-        return _jsx(Text, { color: "green", children: line });
+        return (_jsx(Text, { color: "green", wrap: "truncate", children: line }));
     }
     if (line.startsWith('-') && !line.startsWith('---')) {
-        return _jsx(Text, { color: "red", children: line });
+        return (_jsx(Text, { color: "red", wrap: "truncate", children: line }));
     }
     if (line.startsWith('@@')) {
-        return _jsx(Text, { color: "cyan", children: line });
+        return (_jsx(Text, { color: "cyan", wrap: "truncate", children: line }));
     }
     if (line.startsWith('diff ') ||
         line.startsWith('index ') ||
         line.startsWith('---') ||
         line.startsWith('+++')) {
-        return _jsx(Text, { dimColor: true, children: line });
+        return (_jsx(Text, { dimColor: true, wrap: "truncate", children: line }));
     }
-    return _jsx(Text, { children: line });
+    return _jsx(Text, { wrap: "truncate", children: line });
 }
 export function DiffView({ session, onExit }) {
     const { stdout } = useStdout();
@@ -102,12 +102,12 @@ export function DiffView({ session, onExit }) {
             onExit();
             return;
         }
-        if (input === 'k') {
-            setSelectedFileIndex((prev) => Math.max(0, prev - 1));
+        if (input === 'k' || key.leftArrow) {
+            setSelectedFileIndex((prev) => (prev <= 0 ? files.length - 1 : prev - 1));
             return;
         }
-        if (input === 'j') {
-            setSelectedFileIndex((prev) => Math.min(files.length - 1, prev + 1));
+        if (input === 'j' || key.rightArrow) {
+            setSelectedFileIndex((prev) => (prev >= files.length - 1 ? 0 : prev + 1));
             return;
         }
         if (input === 'w' || key.upArrow) {
@@ -140,7 +140,7 @@ export function DiffView({ session, onExit }) {
     const totalRemoved = files.reduce((sum, f) => sum + f.removed, 0);
     const maxOffset = Math.max(0, diffLines.length - visibleLines);
     const scrollPercent = maxOffset > 0 ? Math.round((scrollOffset / maxOffset) * 100) : 100;
-    return (_jsxs(Box, { flexDirection: "column", children: [_jsx(Box, { borderStyle: "round", borderColor: "gray", paddingX: 1, gap: 1, children: files.map((f, i) => (_jsx(Text, { bold: i === selectedFileIndex, color: i === selectedFileIndex ? 'white' : 'gray', children: i === selectedFileIndex ? `[${basename(f.path)}]` : basename(f.path) }, f.path))) }), _jsxs(Box, { paddingX: 1, gap: 2, children: [_jsx(Text, { bold: true, color: "white", children: basename(currentFile.path) }), _jsxs(Text, { color: "green", children: ["+", currentFile.added] }), _jsxs(Text, { color: "red", children: ["-", currentFile.removed] }), _jsx(Text, { dimColor: true, children: currentFile.path })] }), _jsx(Box, { flexDirection: "column", borderStyle: "round", borderColor: "gray", paddingX: 1, children: visibleDiffLines.length === 0 ? (_jsx(Text, { dimColor: true, children: "No diff content" })) : (visibleDiffLines.map((line, i) => (
+    return (_jsxs(Box, { flexDirection: "column", children: [_jsx(Box, { borderStyle: "round", borderColor: "gray", paddingX: 1, gap: 1, children: files.map((f, i) => (_jsx(Text, { bold: i === selectedFileIndex, color: i === selectedFileIndex ? 'white' : 'gray', children: i === selectedFileIndex ? `[${basename(f.path)}]` : basename(f.path) }, f.path))) }), _jsxs(Box, { paddingX: 1, gap: 2, children: [_jsx(Text, { bold: true, color: "white", children: basename(currentFile.path) }), _jsxs(Text, { color: "green", children: ["+", currentFile.added] }), _jsxs(Text, { color: "red", children: ["-", currentFile.removed] }), _jsx(Text, { dimColor: true, children: currentFile.path })] }), _jsx(Box, { flexDirection: "column", borderStyle: "round", borderColor: "gray", paddingX: 1, height: visibleLines + 2, children: visibleDiffLines.length === 0 ? (_jsx(Text, { dimColor: true, children: "No diff content" })) : (visibleDiffLines.map((line, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: position-stable diff rendering
-                _jsx(DiffLine, { line: line }, scrollOffset + i)))) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsxs(Box, { gap: 1, children: [_jsxs(Text, { dimColor: true, children: [files.length, " files"] }), _jsxs(Text, { color: "green", children: ["+", totalAdded] }), _jsxs(Text, { color: "red", children: ["-", totalRemoved] }), maxOffset > 0 && _jsxs(Text, { dimColor: true, children: [scrollPercent, "%"] })] }), _jsxs(Box, { gap: 1, children: [_jsx(Text, { dimColor: true, children: "[j/k]Files" }), _jsx(Text, { dimColor: true, children: "[w/s]Scroll" }), _jsx(Text, { dimColor: true, children: "[e]VSCode" }), _jsx(Text, { dimColor: true, children: "[d/q]Back" })] })] })] }));
+                _jsx(DiffLine, { line: line }, scrollOffset + i)))) }), _jsxs(Box, { justifyContent: "space-between", paddingX: 1, children: [_jsxs(Box, { gap: 1, children: [_jsxs(Text, { dimColor: true, children: [files.length, " files"] }), _jsxs(Text, { color: "green", children: ["+", totalAdded] }), _jsxs(Text, { color: "red", children: ["-", totalRemoved] }), maxOffset > 0 && _jsxs(Text, { dimColor: true, children: [scrollPercent, "%"] })] }), _jsxs(Box, { gap: 1, children: [_jsx(Text, { dimColor: true, children: "[j/k/\u2190\u2192]Files" }), _jsx(Text, { dimColor: true, children: "[w/s/\u2191\u2193]Scroll" }), _jsx(Text, { dimColor: true, children: "[e]VSCode" }), _jsx(Text, { dimColor: true, children: "[d/q]Back" })] })] })] }));
 }

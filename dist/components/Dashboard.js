@@ -186,7 +186,10 @@ export function Dashboard({ initialShowQr, preferTailscale, serverEnabled = fals
     if (viewMode === 'diff') {
         const session = sessions[selectedIndex];
         if (session) {
-            return _jsx(DiffView, { session: session, onExit: () => setViewMode('list') });
+            return (_jsx(DiffView, { session: session, onExit: () => {
+                    stdout?.write('\x1b[2J\x1b[H');
+                    setViewMode('list');
+                } }));
         }
         // Session gone, fall through to list
     }

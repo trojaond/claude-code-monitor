@@ -231,7 +231,15 @@ export function Dashboard({
   if (viewMode === 'diff') {
     const session = sessions[selectedIndex];
     if (session) {
-      return <DiffView session={session} onExit={() => setViewMode('list')} />;
+      return (
+        <DiffView
+          session={session}
+          onExit={() => {
+            stdout?.write('\x1b[2J\x1b[H');
+            setViewMode('list');
+          }}
+        />
+      );
     }
     // Session gone, fall through to list
   }

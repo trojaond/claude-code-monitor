@@ -73,13 +73,25 @@ function getDiffLines(cwd: string, filePath: string): string[] {
 
 function DiffLine({ line }: { line: string }): React.ReactElement {
   if (line.startsWith('+') && !line.startsWith('+++')) {
-    return <Text color="green">{line}</Text>;
+    return (
+      <Text color="green" wrap="truncate">
+        {line}
+      </Text>
+    );
   }
   if (line.startsWith('-') && !line.startsWith('---')) {
-    return <Text color="red">{line}</Text>;
+    return (
+      <Text color="red" wrap="truncate">
+        {line}
+      </Text>
+    );
   }
   if (line.startsWith('@@')) {
-    return <Text color="cyan">{line}</Text>;
+    return (
+      <Text color="cyan" wrap="truncate">
+        {line}
+      </Text>
+    );
   }
   if (
     line.startsWith('diff ') ||
@@ -87,9 +99,13 @@ function DiffLine({ line }: { line: string }): React.ReactElement {
     line.startsWith('---') ||
     line.startsWith('+++')
   ) {
-    return <Text dimColor>{line}</Text>;
+    return (
+      <Text dimColor wrap="truncate">
+        {line}
+      </Text>
+    );
   }
-  return <Text>{line}</Text>;
+  return <Text wrap="truncate">{line}</Text>;
 }
 
 export function DiffView({ session, onExit }: DiffViewProps): React.ReactElement {
@@ -206,8 +222,14 @@ export function DiffView({ session, onExit }: DiffViewProps): React.ReactElement
         <Text dimColor>{currentFile.path}</Text>
       </Box>
 
-      {/* Diff content */}
-      <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1}>
+      {/* Diff content — fixed height so switching between files never leaves residual rows */}
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        borderColor="gray"
+        paddingX={1}
+        height={visibleLines + 2}
+      >
         {visibleDiffLines.length === 0 ? (
           <Text dimColor>No diff content</Text>
         ) : (
