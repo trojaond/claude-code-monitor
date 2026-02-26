@@ -95,18 +95,7 @@ const COL_TASKS = 6;
 const COL_LAST = 6;
 const COL_AGE = 6;
 
-// Total of all fixed-width columns (index col=4 + rest)
 const COL_IDX = 4;
-const FIXED_COLS_TOTAL =
-  COL_IDX +
-  COL_STATUS +
-  COL_TERMINAL +
-  COL_MODEL +
-  COL_COST +
-  COL_CTX +
-  COL_TASKS +
-  COL_LAST +
-  COL_AGE;
 // Dashboard outer box: round border (2) + paddingX={1} (2) = 4 overhead chars
 const DASH_OVERHEAD = 4;
 
@@ -120,7 +109,6 @@ export const SessionTable = memo(function SessionTable({
   const { stdout } = useStdout();
   const terminalWidth = stdout?.columns ?? 120;
   const contentWidth = Math.max(40, terminalWidth - DASH_OVERHEAD);
-  const flexColWidth = Math.max(8, Math.floor((contentWidth - FIXED_COLS_TOTAL) / 2));
   const tick = Math.floor(now / 1000);
 
   return (
@@ -200,36 +188,81 @@ export const SessionTable = memo(function SessionTable({
         const indicator = rowIndicator(sec, isSelected, isMarked, tick);
         const isRecent = sec < 20;
 
-        // Marked rows: single padded Text for true full-row blue highlight
+        // Marked rows: per-cell rendering matching normal row layout, with blue background.
+        // Padding each cell's text to its column width ensures the blue highlight is
+        // continuous. Flex columns use wrap="truncate" + trailing spaces so Ink's own
+        // layout fills the cell without a manual flexColWidth calculation.
         if (isMarked) {
-          const pad = (s: string, w: number) => s.slice(0, w).padEnd(w);
           const ctxStr =
             session.contextPercent !== undefined
               ? renderContextBar(session.contextPercent)
               : '\u2014';
-          const rowStr = [
-            pad(`${indicator} ${index + 1} `, COL_IDX),
-            pad(`${symbol} ${label}`, COL_STATUS),
-            pad(truncate(cwd, flexColWidth), flexColWidth),
-            pad(truncate(session.lastPrompt ?? '', flexColWidth), flexColWidth),
-            pad(truncate(terminal, COL_TERMINAL), COL_TERMINAL),
-            pad(truncate(model, COL_MODEL), COL_MODEL),
-            pad(cost, COL_COST),
-            pad(ctxStr, COL_CTX),
-            pad(tasks, COL_TASKS),
-            pad(last, COL_LAST),
-            pad(age, COL_AGE),
-          ]
-            .join('')
-            .replace(/\r?\n|\r/g, ' ')
-            .slice(0, contentWidth - 1)
-            .padEnd(contentWidth - 1);
-
+          const ctxColor =
+            session.contextPercent !== undefined
+              ? getContextBarColor(session.contextPercent)
+              : undefined;
+          // Long pad appended to flex-column text; wrap="truncate" clips it to box width,
+          // filling the cell with the blue background.
+          const fill = ' '.repeat(contentWidth);
+          const bg = 'blue' as const;
           return (
             <Box key={`${session.session_id}:${session.tty || ''}`}>
-              <Text backgroundColor="blue" bold={isSelected || (isRecent && sec < 5)}>
-                {rowStr}
-              </Text>
+              <Box width={COL_IDX}>
+                <Text
+                  backgroundColor={bg}
+                  color={isSelected ? 'cyan' : isRecent ? 'yellow' : undefined}
+                  bold={isSelected || (isRecent && sec < 5)}
+                >
+                  {`${indicator}${index + 1} `.padEnd(COL_IDX)}
+                </Text>
+              </Box>
+              <Box width={COL_STATUS}>
+                <Text color={color} backgroundColor={bg}>
+                  {`${symbol} ${label}`.padEnd(COL_STATUS)}
+                </Text>
+              </Box>
+              <Box flexGrow={1} flexBasis={0}>
+                <Text color="white" backgroundColor={bg} wrap="truncate">
+                  {cwd + fill}
+                </Text>
+              </Box>
+              <Box flexGrow={1} flexBasis={0}>
+                <Text backgroundColor={bg} wrap="truncate">
+                  {(session.lastPrompt ?? '') + fill}
+                </Text>
+              </Box>
+              <Box width={COL_TERMINAL}>
+                <Text
+                  color={terminal ? getTerminalColor(terminal) : undefined}
+                  backgroundColor={bg}
+                >
+                  {truncate(terminal, COL_TERMINAL).padEnd(COL_TERMINAL)}
+                </Text>
+              </Box>
+              <Box width={COL_MODEL}>
+                <Text backgroundColor={bg}>{truncate(model, COL_MODEL).padEnd(COL_MODEL)}</Text>
+              </Box>
+              <Box width={COL_COST}>
+                <Text color={cost ? 'yellow' : undefined} backgroundColor={bg}>
+                  {cost.padEnd(COL_COST)}
+                </Text>
+              </Box>
+              <Box width={COL_CTX}>
+                <Text color={ctxColor} backgroundColor={bg}>
+                  {ctxStr.padEnd(COL_CTX)}
+                </Text>
+              </Box>
+              <Box width={COL_TASKS}>
+                <Text color={tasks ? 'cyan' : undefined} backgroundColor={bg}>
+                  {tasks.padEnd(COL_TASKS)}
+                </Text>
+              </Box>
+              <Box width={COL_LAST}>
+                <Text backgroundColor={bg}>{last.padEnd(COL_LAST)}</Text>
+              </Box>
+              <Box width={COL_AGE}>
+                <Text backgroundColor={bg}>{age.padEnd(COL_AGE)}</Text>
+              </Box>
             </Box>
           );
         }
