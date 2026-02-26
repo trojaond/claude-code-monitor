@@ -4,7 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { MIN_TERMINAL_HEIGHT_FOR_QR } from '../constants.js';
 import { useServer } from '../hooks/useServer.js';
 import { useSessions } from '../hooks/useSessions.js';
-import { clearSessions, readSettings, writeSettings } from '../store/file-store.js';
+import {
+  clearSessions,
+  deleteSessionsByIds,
+  readSettings,
+  writeSettings,
+} from '../store/file-store.js';
 import type { Task } from '../types/index.js';
 import { focusSession } from '../utils/focus.js';
 import { getTasksFromTranscript } from '../utils/tasks.js';
@@ -40,6 +45,7 @@ export function Dashboard({
   } = useServer({ preferTailscale, enabled: serverEnabled });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [markedSessionIds, setMarkedSessionIds] = useState<Set<string>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [taskData, setTaskData] = useState<Task[] | undefined>();
@@ -153,6 +159,19 @@ export function Dashboard({
       return; // DiffView handles its own input
     }
 
+    // Delete confirmation prompt
+    if (showDeleteConfirm) {
+      if (input === 'y' || key.return) {
+        deleteSessionsByIds(markedSessionIds);
+        setMarkedSessionIds(new Set());
+        setShowDeleteConfirm(false);
+        setSelectedIndex(0);
+      } else if (input === 'n' || key.escape) {
+        setShowDeleteConfirm(false);
+      }
+      return;
+    }
+
     // List view
     if (input === 'q' || key.escape) {
       exit();
@@ -174,13 +193,19 @@ export function Dashboard({
       openTaskView();
       return;
     }
-    if (input === 'd') {
+    if (input === 'd' && !key.ctrl) {
       if (sessions[selectedIndex]) {
         setViewMode('diff');
       }
       return;
     }
-    if (input === 'm') {
+    if (key.ctrl && input === 'd') {
+      if (markedSessionIds.size > 0) {
+        setShowDeleteConfirm(true);
+      }
+      return;
+    }
+    if (input === ' ') {
       const session = sessions[selectedIndex];
       if (session) {
         setMarkedSessionIds((prev) => {
@@ -285,12 +310,26 @@ export function Dashboard({
         <Text dimColor>[Enter]Focus</Text>
         <Text dimColor>[s]Tasks</Text>
         <Text dimColor>[d]Diff</Text>
-        <Text dimColor>[m]Mark</Text>
+        <Text dimColor>[Space]Mark</Text>
+        {markedSessionIds.size > 0 && (
+          <Text color="yellow">[^D]Delete({markedSessionIds.size})</Text>
+        )}
         <Text dimColor>[1-9]Quick</Text>
         <Text dimColor>[c]Clear</Text>
         {serverEnabled && <Text dimColor>[h]{qrCodeUserPref ? 'Hide' : 'Show'}URL</Text>}
         <Text dimColor>[q]Quit</Text>
       </Box>
+
+      {/* Delete confirmation */}
+      {showDeleteConfirm && (
+        <Box marginTop={1} borderStyle="round" borderColor="red" paddingX={2} paddingY={0}>
+          <Text color="red" bold>
+            Delete {markedSessionIds.size} marked session{markedSessionIds.size > 1 ? 's' : ''}?{' '}
+          </Text>
+          <Text color="green">[y]Yes </Text>
+          <Text dimColor>[n/Esc]Cancel</Text>
+        </Box>
+      )}
 
       {/* Web UI hint - shown when URL is hidden */}
       {serverEnabled && !serverLoading && url && !qrCodeUserPref && (
