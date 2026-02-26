@@ -221,7 +221,9 @@ export const SessionTable = memo(function SessionTable({
             pad(age, COL_AGE),
           ]
             .join('')
-            .padEnd(contentWidth);
+            .replace(/\r?\n|\r/g, ' ')
+            .slice(0, contentWidth - 1)
+            .padEnd(contentWidth - 1);
 
           return (
             <Box key={`${session.session_id}:${session.tty || ''}`}>
