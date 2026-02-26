@@ -271,6 +271,15 @@ export function removeSession(sessionId, tty) {
 export function clearSessions() {
     writeStore(getEmptyStoreData());
 }
+export function deleteSessionsByIds(sessionIds) {
+    const store = readStore();
+    for (const [key, session] of Object.entries(store.sessions)) {
+        if (sessionIds.has(session.session_id)) {
+            delete store.sessions[key];
+        }
+    }
+    writeStore(store);
+}
 export function getStorePath() {
     return STORE_FILE;
 }

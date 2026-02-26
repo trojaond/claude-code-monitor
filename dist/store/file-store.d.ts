@@ -26,6 +26,7 @@ export declare function cleanupDeadSessions(): void;
 export declare function getSession(sessionId: string, tty?: string): Session | undefined;
 export declare function removeSession(sessionId: string, tty?: string): void;
 export declare function clearSessions(): void;
+export declare function deleteSessionsByIds(sessionIds: Set<string>): void;
 export declare function getStorePath(): string;
 export declare function readSettings(): Settings;
 export declare function writeSettings(settings: Settings): void;
